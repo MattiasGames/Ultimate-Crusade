@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ultimate Crusade</title>
+  <style>
+    :root {
+      --primary: #d4af37;
+      --bg-dark: #0f1115;
+      --panel-bg: rgba(20, 24, 33, 0.95);
+      --border-color: #3a4252;
+      --steelheim: #2b7fff;
+      --arcadia: #ffd700;
+      --smithsten: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #e2e8f0;
+      font-family: 'Cinzel', 'Segoe UI', Georgia, serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Common UI Containers */
+    .screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      background: radial-gradient(circle, #1a1f2c 0%, #0a0c10 100%);
+      transition: opacity 0.3s ease;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Title Screen */
+    .title-logo {
+      font-size: 4rem;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      text-shadow: 0 0 20px rgba(212, 175, 55, 0.5), 0 0 40px rgba(0,0,0,0.8);
+      margin-bottom: 2rem;
+      text-align: center;
+      font-weight: 900;
+      font-family: serif;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #2c3545 0%, #171b24 100%);
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      padding: 12px 28px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      margin: 8px;
+    }
+
+    .btn:hover {
+      background: var(--primary);
+      color: #000;
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Modal / Form Boxes */
+    .box {
+      background: var(--panel-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 12px;
+      background: #0a0c10;
+      border: 1px solid var(--border-color);
+      color: #fff;
+      font-size: 1.1rem;
+      border-radius: 4px;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* Faction Selection */
+    .factions-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin: 1.5rem 0;
+    }
+
+    .faction-card {
+      background: rgba(0,0,0,0.4);
+      border: 2px solid var(--border-color);
+      border-radius: 6px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .faction-card:hover, .faction-card.selected {
+      transform: scale(1.05);
+    }
+
+    .faction-card.steelheim { border-color: var(--steelheim); }
+    .faction-card.steelheim:hover, .faction-card.steelheim.selected { box-shadow: 0 0 15px var(--steelheim); background: rgba(43, 127, 255, 0.15); }
+    
+    .faction-card.arcadia { border-color: var(--arcadia); }
+    .faction-card.arcadia:hover, .faction-card.arcadia.selected { box-shadow: 0 0 15px var(--arcadia); background: rgba(255, 215, 0, 0.15); }
+
+    .faction-card.smithsten { border-color: var(--smithsten); }
+    .faction-card.smithsten:hover, .faction-card.smithsten.selected { box-shadow: 0 0 15px var(--smithsten); background: rgba(148, 163, 184, 0.15); }
+
+    .faction-icon {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 10px;
+    }
+
+    /* Hub & Tabs */
+    .hub-header {
+      width: 100%;
+      padding: 15px 30px;
+      background: var(--panel-bg);
+      border-bottom: 2px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 20px;
+      font-weight: bold;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0,0,0,0.5);
+      padding: 6px 12px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    .hub-nav {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+    }
+
+    .tab-content {
+      width: 90%;
+      max-width: 1000px;
+      height: 70vh;
+      background: var(--panel-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    /* Mode Selection */
+    .modes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      height: 100%;
+    }
+
+    .mode-card {
+      background: rgba(0,0,0,0.4);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+
+    .mode-card:hover {
+      border-color: var(--primary);
+    }
+
+    /* Forge / Shop */
+    .shop-sections {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .shop-category {
+      background: rgba(0,0,0,0.3);
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .shop-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+      max-height: 450px;
+      overflow-y: auto;
+    }
+
+    .shop-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(250,250,250,0.05);
+      padding: 10px;
+      border-radius: 4px;
+      border-left: 4px solid #fff;
+    }
+
+    .shop-item.common { border-left-color: #a3a3a3; }
+    .shop-item.uncommon { border-left-color: #22c55e; }
+    .shop-item.rare { border-left-color: #3b82f6; }
+    .shop-item.epic { border-left-color: #a855f7; }
+    .shop-item.legendary { border-left-color: #eab308; }
+    .shop-item.mythic { border-left-color: #ef4444; }
+
+    .item-preview {
+      width: 50px;
+      height: 50px;
+      background: #000;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* HUD Overlay for Gameplay */
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    canvas {
+      display: block;
+      background: #1e232d;
+    }
+
+    #game-hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .hud-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .player-stats-hud {
+      background: var(--panel-bg);
+      padding: 15px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      width: 250px;
+    }
+
+    .bar-container {
+      width: 100%;
+      height: 12px;
+      background: #000;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 4px;
+      border: 1px solid #444;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 100%;
+      transition: width 0.1s linear;
+    }
+
+    .health-fill { background: #e11d48; }
+
+    .weapon-hud {
+      background: var(--panel-bg);
+      padding: 10px 15px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .weapon-box {
+      width: 50px;
+      height: 50px;
+      border: 2px solid var(--border-color);
+      border-radius: 4px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    .weapon-box.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 10px var(--primary);
+    }
+
+    /* Post Game Overlay */
+    #post-game-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 12, 16, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+    }
+
+    .rarity-tag {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+    }
+    .rarity-common { background: #4b5563; color: #fff; }
+    .rarity-uncommon { background: #15803d; color: #fff; }
+    .rarity-rare { background: #1d4ed8; color: #fff; }
+    .rarity-epic { background: #6b21a8; color: #fff; }
+    .rarity-legendary { background: #a16207; color: #fff; }
+    .rarity-mythic { background: #991b1b; color: #fff; }
+  </style>
+</head>
+<body>
+
+  <!-- TITLE SCREEN -->
+  <div id="screen-title" class="screen">
+    <h1 class="title-logo">Ultimate Crusade</h1>
+    <button class="btn" id="btn-start-legacy">Start Legacy</button>
+  </div>
+
+  <!-- SETUP SCREEN (Name & Faction) -->
+  <div id="screen-setup" class="screen hidden">
+    <div class="box">
+      <h2>Create Your Champion</h2>
+      <p style="margin: 10px 0; color: #a0aec0;">Enter your username to begin your legacy.</p>
+      <input type="text" id="input-username" placeholder="Enter Username..." maxlength="16">
+
+      <h3>Select Your Faction</h3>
+      <div class="factions-grid">
+        <div class="faction-card steelheim" data-faction="Steelheim">
+          <canvas class="faction-icon" id="icon-steelheim" width="50" height="50"></canvas>
+          <strong style="color: var(--steelheim)">Steelheim</strong>
+          <small>+25% Melee Weapon Points</small>
+        </div>
+        <div class="faction-card arcadia" data-faction="Arcadia">
+          <canvas class="faction-icon" id="icon-arcadia" width="50" height="50"></canvas>
+          <strong style="color: var(--arcadia)">Arcadia</strong>
+          <small>+25% Bow Points</small>
+        </div>
+        <div class="faction-card smithsten" data-faction="Smithsten">
+          <canvas class="faction-icon" id="icon-smithsten" width="50" height="50"></canvas>
+          <strong style="color: var(--smithsten)">Smithsten</strong>
+          <small>+25% Armor Points</small>
+        </div>
+      </div>
+
+      <button class="btn" id="btn-confirm-setup" style="margin-top: 15px;">Enter Realm</button>
+    </div>
+  </div>
+
+  <!-- MAIN HUB SCREEN -->
+  <div id="screen-hub" class="screen hidden">
+    <div class="hub-header">
+      <div class="user-info">
+        <canvas id="hub-faction-icon" width="40" height="40"></canvas>
+        <div>
+          <h2 id="hub-username">Player</h2>
+          <small id="hub-faction" style="color: var(--primary);">Faction</small>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-item">🪙 Gold: <span id="val-gold" style="color: #ffd700;">0</span></div>
+        <div class="stat-item">⚔️ Melee Pts: <span id="val-pts-melee" style="color:#60a5fa;">0</span></div>
+        <div class="stat-item">🏹 Bow Pts: <span id="val-pts-bow" style="color:#facc15;">0</span></div>
+        <div class="stat-item">🛡️ Armor Pts: <span id="val-pts-armor" style="color:#94a3b8;">0</span></div>
+        <div class="stat-item">🏆 Rank: <span id="val-rank" style="color:#f43f5e;">Unranked (1000 ELO)</span></div>
+      </div>
+    </div>
+
+    <div class="hub-nav">
+      <button class="btn tab-btn active" data-tab="modes">Battle Modes</button>
+      <button class="btn tab-btn" data-tab="forge">The Forge & Shop</button>
+      <button class="btn tab-btn" data-tab="leaderboard">Global Leaderboard</button>
+    </div>
+
+    <!-- TAB: MODES -->
+    <div id="tab-modes" class="tab-content">
+      <div class="modes-grid">
+        <div class="mode-card">
+          <h3>Casual Arena</h3>
+          <p>4-Player Free-for-All against CPUs. Earn gold based on placement, and gain weapon/armor points through combat actions.</p>
+          <button class="btn" onclick="game.startMatch('casual')">Play Casual</button>
+        </div>
+        <div class="mode-card">
+          <h3>Ranked Crusade</h3>
+          <p>Competitive FFA. Gain or lose ELO based on placement. Climb the ladder to reach Global #1 out of 1000 players!</p>
+          <button class="btn" onclick="game.startMatch('ranked')">Play Ranked</button>
+        </div>
+        <div class="mode-card">
+          <h3>Zombie Horde</h3>
+          <p>Survive endless waves of fierce zombies. Collect massive gold and point rewards as difficulty ramps up!</p>
+          <button class="btn" onclick="game.startMatch('zombies')">Play Zombies</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: FORGE -->
+    <div id="tab-forge" class="tab-content hidden">
+      <div class="shop-sections">
+        <!-- WEAPON & ARMOR SHOP -->
+        <div class="shop-category">
+          <h3>Merchant Shop (Gold)</h3>
+          <div class="shop-items-list" id="shop-items-container">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- UPGRADE FORGE -->
+        <div class="shop-category">
+          <h3>The Forge (Points)</h3>
+          <p style="font-size:0.85rem; color:#a0aec0; margin-bottom:10px;">Upgrade equipped gear attributes using weapon & armor points.</p>
+          <div class="shop-items-list" id="forge-upgrades-container">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: LEADERBOARD -->
+    <div id="tab-leaderboard" class="tab-content hidden">
+      <h3>Global Crusade Rankings (#1 - #1000)</h3>
+      <table style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border-color); color: var(--primary);">
+            <th style="padding: 10px;">Rank</th>
+            <th>Champion</th>
+            <th>Faction</th>
+            <th>ELO Rating</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <!-- Populated via JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-container" class="hidden">
+    <canvas id="gameCanvas"></canvas>
+    <div id="game-hud">
+      <div class="hud-top">
+        <div class="player-stats-hud">
+          <div style="display:flex; justify-content:space-between; font-weight:bold;">
+            <span id="hud-player-name">Player</span>
+            <span id="hud-hp-text">100/100</span>
+          </div>
+          <div class="bar-container">
+            <div id="hud-hp-bar" class="bar-fill health-fill"></div>
+          </div>
+        </div>
+        <div id="hud-mode-info" style="background:var(--panel-bg); padding:10px 20px; border-radius:6px; border:1px solid var(--border-color); font-weight:bold; font-size:1.2rem;">
+          Casual Mode
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+        <div class="weapon-hud">
+          <div class="weapon-box active" id="hud-slot-melee">
+            ⚔️
+          </div>
+          <div class="weapon-box" id="hud-slot-bow">
+            🏹
+          </div>
+          <small style="color:#aaa;">[SPACE] Switch | [ARROWS] Move | [MOUSE] Aim & Attack</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- POST GAME OVERLAY (Maintains Canvas Background) -->
+    <div id="post-game-overlay" class="hidden">
+      <div class="box">
+        <h1 id="post-title" style="color: var(--primary); font-size:2.5rem; margin-bottom:10px;">BATTLE ENDED</h1>
+        <p id="post-summary" style="font-size: 1.2rem; margin-bottom: 20px;"></p>
+        <div style="display:flex; justify-content:space-around; margin: 20px 0; background:rgba(0,0,0,0.4); padding:15px; border-radius:6px;">
+          <div>Gold Earned: <strong id="post-gold" style="color:#ffd700;">+0</strong></div>
+          <div>Points Earned: <strong id="post-pts" style="color:#60a5fa;">+0</strong></div>
+          <div>ELO Change: <strong id="post-elo" style="color:#f43f5e;">0</strong></div>
+        </div>
+        <button class="btn" onclick="game.returnToHub()">Return to Hub</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================
+       DATA & CONSTANTS
+       ========================================== */
+    const RARITIES = {
+      COMMON: { name: 'Common', color: '#a3a3a3', statMult: 1.0 },
+      UNCOMMON: { name: 'Uncommon', color: '#22c55e', statMult: 1.3 },
+      RARE: { name: 'Rare', color: '#3b82f6', statMult: 1.7 },
+      EPIC: { name: 'Epic', color: '#a855f7', statMult: 2.2 },
+      LEGENDARY: { name: 'Legendary', color: '#eab308', statMult: 3.0 },
+      MYTHIC: { name: 'Mythic', color: '#ef4444', statMult: 4.5 }
+    };
+
+    const MELEE_WEAPONS = [
+      { id: 'm_iron_sword', name: 'Iron Sword', type: 'melee', rarity: 'COMMON', baseDmg: 20, cost: 0 },
+      { id: 'm_steel_broadsword', name: 'Steel Broadsword', type: 'melee', rarity: 'UNCOMMON', baseDmg: 32, cost: 150 },
+      { id: 'm_nordic_battleaxe', name: 'Nordic Battleaxe', type: 'melee', rarity: 'RARE', baseDmg: 48, cost: 400 },
+      { id: 'm_runic_greatsword', name: 'Runic Greatsword', type: 'melee', rarity: 'EPIC', baseDmg: 70, cost: 900 },
+      { id: 'm_valkyrie_blade', name: 'Valkyrie Blade', type: 'melee', rarity: 'LEGENDARY', baseDmg: 105, cost: 2000 },
+      { id: 'm_mjolnir_hammer', name: 'Mjolnir Crusher', type: 'melee', rarity: 'MYTHIC', baseDmg: 160, cost: 5000 }
+    ];
+
+    const BOW_WEAPONS = [
+      { id: 'b_short_bow', name: 'Short Bow', type: 'bow', rarity: 'COMMON', baseDmg: 15, speed: 10, cost: 0 },
+      { id: 'b_recurve_bow', name: 'Recurve Bow', type: 'bow', rarity: 'UNCOMMON', baseDmg: 24, speed: 12, cost: 150 },
+      { id: 'b_longbow', name: 'Yew Longbow', type: 'bow', rarity: 'RARE', baseDmg: 38, speed: 14, cost: 400 },
+      { id: 'b_arcane_bow', name: 'Arcane Greatbow', type: 'bow', rarity: 'EPIC', baseDmg: 58, speed: 17, cost: 900 },
+      { id: 'b_phoenix_bow', name: 'Phoenix Bow', type: 'bow', rarity: 'LEGENDARY', baseDmg: 88, speed: 20, cost: 2000 },
+      { id: 'b_celestial_bow', name: 'Celestial Starbow', type: 'bow', rarity: 'MYTHIC', baseDmg: 135, speed: 24, cost: 5000 }
+    ];
+
+    const ARMORS = [
+      { id: 'a_padded', name: 'Padded Leather', rarity: 'COMMON', hpBonus: 0, cost: 0, color: '#8b5a2b' },
+      { id: 'a_chainmail', name: 'Chainmail Hauberk', rarity: 'UNCOMMON', hpBonus: 40, cost: 150, color: '#94a3b8' },
+      { id: 'a_scale', name: 'Steel Scale Armor', rarity: 'RARE', hpBonus: 90, cost: 400, color: '#475569' },
+      { id: 'a_knight', name: 'Knight Templar Plate', rarity: 'EPIC', hpBonus: 160, cost: 900, color: '#38bdf8' },
+      { id: 'a_dragon', name: 'Dragon Scale Plate', rarity: 'LEGENDARY', hpBonus: 260, cost: 2000, color: '#eab308' },
+      { id: 'a_godly', name: 'Aegis Godplate', rarity: 'MYTHIC', hpBonus: 420, cost: 5000, color: '#ef4444' }
+    ];
+
+    /* ==========================================
+       STATE MANAGEMENT & SAVE SYSTEM
+       ========================================== */
+    let playerSave = {
+      username: '',
+      faction: '',
+      gold: 100,
+      ptsMelee: 0,
+      ptsBow: 0,
+      ptsArmor: 0,
+      elo: 1000,
+      inventory: ['m_iron_sword', 'b_short_bow', 'a_padded'],
+      equipped: {
+        melee: 'm_iron_sword',
+        bow: 'b_short_bow',
+        armor: 'a_padded'
+      },
+      upgrades: {
+        meleeLvl: 0,
+        bowLvl: 0,
+        armorLvl: 0
+      }
+    };
+
+    function saveGameData() {
+      localStorage.setItem('ultimate_crusade_save', JSON.stringify(playerSave));
+    }
+
+    function loadGameData() {
+      const data = localStorage.getItem('ultimate_crusade_save');
+      if (data) {
+        playerSave = Object.assign(playerSave, JSON.parse(data));
+        return true;
+      }
+      return false;
+    }
+
+    /* ==========================================
+       CANVAS FACTION SYMBOL DRAWING
+       ========================================== */
+    function drawNordicSymbol(ctx, x, y, size, color, faction) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+
+      if (faction === 'Steelheim') {
+        // Valknut / Shield emblem
+        ctx.beginPath();
+        ctx.moveTo(0, -size);
+        ctx.lineTo(size, size);
+        ctx.lineTo(-size, size);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, size);
+        ctx.lineTo(-size, -size);
+        ctx.lineTo(size, -size);
+        ctx.closePath();
+        ctx.stroke();
+      } else if (faction === 'Arcadia') {
+        // Sun / Bow Aegis Symbol
+        ctx.beginPath();
+        ctx.arc(0, 0, size * 0.7, 0, Math.PI * 2);
+        ctx.stroke();
+        for (let i = 0; i < 4; i++) {
+          let angle = (i * Math.PI) / 2;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(angle) * (size * 0.7), Math.sin(angle) * (size * 0.7));
+          ctx.lineTo(Math.cos(angle) * (size * 1.2), Math.sin(angle) * (size * 1.2));
+          ctx.stroke();
+        }
+      } else if (faction === 'Smithsten') {
+        // Hammer / Anvil Rune
+        ctx.beginPath();
+        ctx.moveTo(-size, -size * 0.5);
+        ctx.lineTo(size, -size * 0.5);
+        ctx.lineTo(size * 0.5, 0);
+        ctx.lineTo(-size * 0.5, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillRect(-size * 0.25, 0, size * 0.5, size * 1.2);
+      }
+      ctx.restore();
+    }
+
+    function renderFactionIcons() {
+      ['Steelheim', 'Arcadia', 'Smithsten'].forEach(f => {
+        const c = document.getElementById(`icon-${f.toLowerCase()}`);
+        if (c) {
+          const ctx = c.getContext('2d');
+          ctx.clearRect(0, 0, 50, 50);
+          let col = f === 'Steelheim' ? '#2b7fff' : f === 'Arcadia' ? '#ffd700' : '#94a3b8';
+          drawNordicSymbol(ctx, 25, 25, 16, col, f);
+        }
+      });
+    }
+
+    /* ==========================================
+       WEAPON & ARMOR PREVIEW RENDERING
+       ========================================== */
+    function drawItemPreview(canvas, item) {
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+
+      ctx.save();
+      if (item.type === 'melee') {
+        ctx.translate(cx, cy);
+        ctx.rotate(-Math.PI / 4);
+        ctx.strokeStyle = RARITIES[item.rarity].color;
+        ctx.lineWidth = 4;
+        // Blade
+        ctx.beginPath();
+        ctx.moveTo(0, 15);
+        ctx.lineTo(0, -18);
+        ctx.stroke();
+        // Guard
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-8, 5);
+        ctx.lineTo(8, 5);
+        ctx.stroke();
+      } else if (item.type === 'bow') {
+        ctx.translate(cx, cy);
+        ctx.strokeStyle = RARITIES[item.rarity].color;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, 16, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+        // String
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(0, -16);
+        ctx.lineTo(0, 16);
+        ctx.stroke();
+      } else {
+        // Armor
+        ctx.fillStyle = item.color || RARITIES[item.rarity].color;
+        ctx.fillRect(cx - 12, cy - 14, 24, 28);
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(cx - 12, cy - 14, 24, 28);
+      }
+      ctx.restore();
+    }
+
+    /* ==========================================
+       UI LOGIC & FORGE SHOP
+       ========================================== */
+    function updateHubUI() {
+      document.getElementById('hub-username').innerText = playerSave.username;
+      document.getElementById('hub-faction').innerText = playerSave.faction;
+      document.getElementById('val-gold').innerText = playerSave.gold;
+      document.getElementById('val-pts-melee').innerText = playerSave.ptsMelee;
+      document.getElementById('val-pts-bow').innerText = playerSave.ptsBow;
+      document.getElementById('val-pts-armor').innerText = playerSave.ptsArmor;
+
+      // Calculate Rank
+      let globalRank = Math.max(1, Math.floor(1001 - (playerSave.elo - 800) / 1.5));
+      if (globalRank > 1000) globalRank = '1000+';
+      document.getElementById('val-rank').innerText = `#${globalRank} (${playerSave.elo} ELO)`;
+
+      // Draw active faction icon
+      const fc = document.getElementById('hub-faction-icon');
+      if (fc) {
+        const ctx = fc.getContext('2d');
+        ctx.clearRect(0, 0, 40, 40);
+        let col = playerSave.faction === 'Steelheim' ? '#2b7fff' : playerSave.faction === 'Arcadia' ? '#ffd700' : '#94a3b8';
+        drawNordicSymbol(ctx, 20, 20, 14, col, playerSave.faction);
+      }
+
+      renderShop();
+      renderForge();
+      renderLeaderboard();
+    }
+
+    function renderShop() {
+      const container = document.getElementById('shop-items-container');
+      container.innerHTML = '';
+
+      const allItems = [...MELEE_WEAPONS, ...BOW_WEAPONS, ...ARMORS];
+
+      allItems.forEach(item => {
+        const isBought = playerSave.inventory.includes(item.id);
+        const isEquipped = playerSave.equipped.melee === item.id || playerSave.equipped.bow === item.id || playerSave.equipped.armor === item.id;
+
+        const div = document.createElement('div');
+        div.className = `shop-item ${item.rarity.toLowerCase()}`;
+        
+        const previewCanvas = document.createElement('canvas');
+        previewCanvas.className = 'item-preview';
+        previewCanvas.width = 50;
+        previewCanvas.height = 50;
+        drawItemPreview(previewCanvas, item);
+
+        let actionBtnHtml = '';
+        if (isEquipped) {
+          actionBtnHtml = `<span style="color:var(--primary); font-weight:bold;">Equipped</span>`;
+        } else if (isBought) {
+          actionBtnHtml = `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="equipItem('${item.id}')">Equip</button>`;
+        } else {
+          actionBtnHtml = `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="buyItem('${item.id}', ${item.cost})">Buy (🪙${item.cost})</button>`;
+        }
+
+        const rarityObj = RARITIES[item.rarity];
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div id="prev-holder-${item.id}"></div>
+            <div>
+              <strong>${item.name}</strong> 
+              <span class="rarity-tag rarity-${item.rarity.toLowerCase()}">${rarityObj.name}</span>
+              <div style="font-size:0.8rem; color:#aaa;">
+                ${item.baseDmg ? 'Dmg: ' + item.baseDmg : ''} ${item.hpBonus ? 'HP: +' + item.hpBonus : ''}
+              </div>
+            </div>
+          </div>
+          <div>${actionBtnHtml}</div>
+        `;
+
+        container.appendChild(div);
+        div.querySelector(`#prev-holder-${item.id}`).appendChild(previewCanvas);
+      });
+    }
+
+    function buyItem(id, cost) {
+      if (playerSave.gold >= cost) {
+        playerSave.gold -= cost;
+        playerSave.inventory.push(id);
+        saveGameData();
+        updateHubUI();
+      } else {
+        alert("Not enough gold!");
+      }
+    }
+
+    function equipItem(id) {
+      if (MELEE_WEAPONS.some(w => w.id === id)) playerSave.equipped.melee = id;
+      if (BOW_WEAPONS.some(w => w.id === id)) playerSave.equipped.bow = id;
+      if (ARMORS.some(a => a.id === id)) playerSave.equipped.armor = id;
+      saveGameData();
+      updateHubUI();
+    }
+
+    function renderForge() {
+      const container = document.getElementById('forge-upgrades-container');
+      container.innerHTML = '';
+
+      const upgrades = [
+        { key: 'meleeLvl', name: 'Melee Weapon Mastery', ptType: 'ptsMelee', label: 'Melee Damage +15%' },
+        { key: 'bowLvl', name: 'Archery Mastery', ptType: 'ptsBow', label: 'Bow Speed & Dmg +15%' },
+        { key: 'armorLvl', name: 'Armorsmithing Mastery', ptType: 'ptsArmor', label: 'Max HP +20' }
+      ];
+
+      upgrades.forEach(u => {
+        let currentLvl = playerSave.upgrades[u.key];
+        let cost = (currentLvl + 1) * 100;
+        let canAfford = playerSave[u.ptType] >= cost;
+
+        let div = document.createElement('div');
+        div.className = 'shop-item uncommon';
+        div.innerHTML = `
+          <div>
+            <strong>${u.name} (Lvl ${currentLvl})</strong>
+            <div style="font-size:0.8rem; color:#aaa;">${u.label}</div>
+          </div>
+          <button class="btn" style="padding:4px 10px; font-size:0.8rem;" ${!canAfford ? 'disabled style="opacity:0.5;"' : ''} onclick="upgradeSkill('${u.key}', '${u.ptType}', ${cost})">
+            Upgrade (${cost} Pts)
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function upgradeSkill(key, ptType, cost) {
+      if (playerSave[ptType] >= cost) {
+        playerSave[ptType] -= cost;
+        playerSave.upgrades[key]++;
+        saveGameData();
+        updateHubUI();
+      }
+    }
+
+    function renderLeaderboard() {
+      const tbody = document.getElementById('leaderboard-body');
+      tbody.innerHTML = '';
+
+      // Generate deterministic top players + inserted user
+      let myRank = Math.max(1, Math.floor(1001 - (playerSave.elo - 800) / 1.5));
+      let rows = [];
+
+      for (let i = 1; i <= 10; i++) {
+        if (i === myRank) {
+          rows.push({ rank: i, name: playerSave.username + ' (YOU)', faction: playerSave.faction, elo: playerSave.elo });
+        } else {
+          rows.push({ rank: i, name: `Crusader_${1000 - i * 3}`, faction: i % 3 === 0 ? 'Steelheim' : i % 2 === 0 ? 'Arcadia' : 'Smithsten', elo: 2500 - (i * 120) });
+        }
+      }
+
+      if (myRank > 10) {
+        rows.push({ rank: '...', name: '...', faction: '...', elo: '...' });
+        rows.push({ rank: myRank, name: playerSave.username + ' (YOU)', faction: playerSave.faction, elo: playerSave.elo });
+      }
+
+      rows.forEach(r => {
+        let tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #2d3748';
+        if (r.name.includes('(YOU)')) tr.style.color = 'var(--primary)';
+        tr.innerHTML = `
+          <td style="padding:8px;">#${r.rank}</td>
+          <td>${r.name}</td>
+          <td>${r.faction}</td>
+          <td>${r.elo}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    /* ==========================================
+       GAME ENGINE & TOP-DOWN COMBAT
+       ========================================== */
+    class UltimateCrusadeGame {
+      constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.mode = 'casual'; // casual, ranked, zombies
+        this.running = false;
+        
+        this.keys = {};
+        this.mouse = { x: 0, y: 0 };
+        this.entities = [];
+        this.projectiles = [];
+        this.particles = [];
+        this.player = null;
+
+        this.wave = 1;
+        this.zombieSpawnTimer = 0;
+
+        // Earned in-match tracking
+        this.sessionGold = 0;
+        this.sessionMeleePts = 0;
+        this.sessionBowPts = 0;
+        this.sessionArmorPts = 0;
+
+        this.initControls();
+      }
+
+      initControls() {
+        window.addEventListener('keydown', e => {
+          this.keys[e.key.toLowerCase()] = true;
+          this.keys[e.code] = true;
+          if (e.code === 'Space' && this.player && this.running) {
+            this.player.switchWeapon();
+          }
+        });
+        window.addEventListener('keyup', e => {
+          this.keys[e.key.toLowerCase()] = false;
+          this.keys[e.code] = false;
+        });
+        window.addEventListener('mousemove', e => {
+          this.mouse.x = e.clientX;
+          this.mouse.y = e.clientY;
+        });
+        window.addEventListener('mousedown', e => {
+          if (this.running && this.player && e.button === 0) {
+            this.player.attack(this);
+          }
+        });
+      }
+
+      resizeCanvas() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+
+      startMatch(mode) {
+        this.mode = mode;
+        this.resizeCanvas();
+        
+        document.getElementById('screen-hub').classList.add('hidden');
+        document.getElementById('game-container').classList.remove('hidden');
+        document.getElementById('post-game-overlay').classList.add('hidden');
+
+        document.getElementById('hud-mode-info').innerText = mode.toUpperCase() + " MODE";
+
+        this.entities = [];
+        this.projectiles = [];
+        this.particles = [];
+        this.sessionGold = 0;
+        this.sessionMeleePts = 0;
+        this.sessionBowPts = 0;
+        this.sessionArmorPts = 0;
+
+        // Spawn Player
+        const pMelee = MELEE_WEAPONS.find(w => w.id === playerSave.equipped.melee);
+        const pBow = BOW_WEAPONS.find(w => w.id === playerSave.equipped.bow);
+        const pArmor = ARMORS.find(a => a.id === playerSave.equipped.armor);
+
+        this.player = new Fighter(
+          this.canvas.width / 2,
+          this.canvas.height / 2,
+          playerSave.username,
+          playerSave.faction,
+          pMelee, pBow, pArmor,
+          true
+        );
+        this.entities.push(this.player);
+
+        // Spawn CPUs or Zombies
+        if (mode === 'casual' || mode === 'ranked') {
+          const corners = [
+            { x: 100, y: 100 },
+            { x: this.canvas.width - 100, y: 100 },
+            { x: 100, y: this.canvas.height - 100 },
+            { x: this.canvas.width - 100, y: this.canvas.height - 100 }
+          ];
+          // Position player at corner 0
+          this.player.x = corners[0].x;
+          this.player.y = corners[0].y;
+
+          const factions = ['Steelheim', 'Arcadia', 'Smithsten'];
+          for (let i = 1; i < 4; i++) {
+            let cpuMelee = MELEE_WEAPONS[Math.floor(Math.random() * MELEE_WEAPONS.length)];
+            let cpuBow = BOW_WEAPONS[Math.floor(Math.random() * BOW_WEAPONS.length)];
+            let cpuArmor = ARMORS[Math.floor(Math.random() * ARMORS.length)];
+            let cpuF = factions[i % 3];
+
+            let cpu = new Fighter(
+              corners[i].x, corners[i].y,
+              `CPU_${i}`, cpuF,
+              cpuMelee, cpuBow, cpuArmor,
+              false
+            );
+            this.entities.push(cpu);
+          }
+        } else if (mode === 'zombies') {
+          this.wave = 1;
+          this.spawnZombieWave();
+        }
+
+        this.running = true;
+        requestAnimationFrame(() => this.loop());
+      }
+
+      spawnZombieWave() {
+        let count = 4 + this.wave * 2;
+        for (let i = 0; i < count; i++) {
+          let side = Math.floor(Math.random() * 4);
+          let x, y;
+          if (side === 0) { x = Math.random() * this.canvas.width; y = -30; }
+          else if (side === 1) { x = this.canvas.width + 30; y = Math.random() * this.canvas.height; }
+          else if (side === 2) { x = Math.random() * this.canvas.width; y = this.canvas.height + 30; }
+          else { x = -30; y = Math.random() * this.canvas.height; }
+
+          this.entities.push(new Zombie(x, y, this.wave));
+        }
+      }
+
+      loop() {
+        if (!this.running) return;
+
+        this.update();
+        this.render();
+
+        requestAnimationFrame(() => this.loop());
+      }
+
+      update() {
+        // Player HUD stats
+        document.getElementById('hud-player-name').innerText = this.player.name;
+        document.getElementById('hud-hp-text').innerText = `${Math.max(0, Math.ceil(this.player.hp))}/${this.player.maxHp}`;
+        document.getElementById('hud-hp-bar').style.width = `${Math.max(0, (this.player.hp / this.player.maxHp) * 100)}%`;
+
+        // Update Entities
+        this.entities.forEach(e => e.update(this));
+        this.projectiles.forEach(p => p.update(this));
+        this.particles.forEach(p => p.update());
+
+        // Clean up dead
+        this.projectiles = this.projectiles.filter(p => p.active);
+        this.particles = this.particles.filter(p => p.active);
+
+        // Check Mode specific triggers
+        if (this.mode === 'zombies') {
+          let zombiesLeft = this.entities.filter(e => e instanceof Zombie && e.hp > 0).length;
+          if (zombiesLeft === 0) {
+            this.wave++;
+            this.sessionGold += 50 * this.wave;
+            this.spawnZombieWave();
+          }
+        }
+
+        // Check Victory / Defeat conditions
+        if (this.mode !== 'zombies') {
+          let aliveFighters = this.entities.filter(e => e instanceof Fighter && e.hp > 0);
+          if (aliveFighters.length <= 1) {
+            this.endMatch(aliveFighters[0] === this.player);
+          }
+        } else {
+          if (this.player.hp <= 0) {
+            this.endMatch(false);
+          }
+        }
+      }
+
+      render() {
+        // Clear Arena
+        this.ctx.fillStyle = '#1e232d';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Draw Arena Grid & Corner Symbols
+        this.ctx.strokeStyle = '#2a3241';
+        this.ctx.lineWidth = 2;
+        let tileSize = 80;
+        for (let x = 0; x < this.canvas.width; x += tileSize) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(x, 0);
+          this.ctx.lineTo(x, this.canvas.height);
+          this.ctx.stroke();
+        }
+        for (let y = 0; y < this.canvas.height; y += tileSize) {
+          this.ctx.beginPath();
+          this.ctx.moveTo(0, y);
+          this.ctx.lineTo(this.canvas.width, y);
+          this.ctx.stroke();
+        }
+
+        // Draw Corner Circles (Arena Spawn Outlines as per diagram)
+        const corners = [
+          { x: 100, y: 100 },
+          { x: this.canvas.width - 100, y: 100 },
+          { x: 100, y: this.canvas.height - 100 },
+          { x: this.canvas.width - 100, y: this.canvas.height - 100 }
+        ];
+        corners.forEach(c => {
+          this.ctx.strokeStyle = 'rgba(212, 175, 55, 0.2)';
+          this.ctx.lineWidth = 4;
+          this.ctx.beginPath();
+          this.ctx.arc(c.x, c.y, 40, 0, Math.PI * 2);
+          this.ctx.stroke();
+        });
+
+        // Render Particles, Entities, Projectiles
+        this.particles.forEach(p => p.render(this.ctx));
+        this.entities.forEach(e => e.render(this.ctx));
+        this.projectiles.forEach(p => p.render(this.ctx));
+      }
+
+      endMatch(won) {
+        this.running = false;
+
+        // Calculate rewards & multipliers based on faction
+        let meleeMult = playerSave.faction === 'Steelheim' ? 1.25 : 1.0;
+        let bowMult = playerSave.faction === 'Arcadia' ? 1.25 : 1.0;
+        let armorMult = playerSave.faction === 'Smithsten' ? 1.25 : 1.0;
+
+        let finalMelee = Math.floor(this.sessionMeleePts * meleeMult);
+        let finalBow = Math.floor(this.sessionBowPts * bowMult);
+        let finalArmor = Math.floor(this.sessionArmorPts * armorMult);
+
+        let placement = this.entities.filter(e => e instanceof Fighter && e.hp > 0).length + (won ? 0 : 1);
+        let goldReward = this.sessionGold + (won ? 200 : placement === 2 ? 100 : 50);
+
+        // Elo Changes for Ranked
+        let eloDelta = 0;
+        if (this.mode === 'ranked') {
+          if (won) eloDelta = 32;
+          else if (placement === 2) eloDelta = 12;
+          else if (placement === 3) eloDelta = -8;
+          else eloDelta = -25;
+        }
+
+        playerSave.gold += goldReward;
+        playerSave.ptsMelee += finalMelee;
+        playerSave.ptsBow += finalBow;
+        playerSave.ptsArmor += finalArmor;
+        playerSave.elo = Math.max(100, playerSave.elo + eloDelta);
+
+        saveGameData();
+
+        // Display Overlay over canvas background
+        document.getElementById('post-title').innerText = won ? 'VICTORY!' : 'DEFEAT';
+        document.getElementById('post-title').style.color = won ? '#22c55e' : '#ef4444';
+        document.getElementById('post-summary').innerText = this.mode === 'zombies' ? 
+          `Survived ${this.wave} Zombie Waves!` : `Finished Rank #${placement} in the arena.`;
+
+        document.getElementById('post-gold').innerText = `+${goldReward}`;
+        document.getElementById('post-pts').innerText = `+${finalMelee + finalBow + finalArmor}`;
+        document.getElementById('post-elo').innerText = eloDelta >= 0 ? `+${eloDelta}` : `${eloDelta}`;
+
+        document.getElementById('post-game-overlay').classList.remove('hidden');
+      }
+
+      returnToHub() {
+        document.getElementById('game-container').classList.add('hidden');
+        document.getElementById('screen-hub').classList.remove('hidden');
+        updateHubUI();
+      }
+    }
+
+    /* ==========================================
+       ENTITY CLASSES (Fighter, Zombie, Projectile, Particle)
+       ========================================== */
+    class Fighter {
+      constructor(x, y, name, faction, melee, bow, armor, isPlayer = false) {
+        this.x = x;
+        this.y = y;
+        this.radius = 20;
+        this.name = name;
+        this.faction = faction;
+        this.isPlayer = isPlayer;
+
+        this.melee = melee;
+        this.bow = bow;
+        this.armor = armor;
+
+        this.currentWeaponSlot = 'melee'; // 'melee' or 'bow'
+        this.angle = 0;
+        this.speed = 4;
+
+        // Apply Armor stats & upgrades
+        let armorHpBonus = armor ? armor.hpBonus : 0;
+        let hpUpgrade = isPlayer ? playerSave.upgrades.armorLvl * 20 : 0;
+        this.maxHp = 100 + armorHpBonus + hpUpgrade;
+        this.hp = this.maxHp;
+
+        this.attackCooldown = 0;
+        this.swingAnimation = 0; // Swing progress [0 -> 1]
+      }
+
+      switchWeapon() {
+        this.currentWeaponSlot = this.currentWeaponSlot === 'melee' ? 'bow' : 'melee';
+        document.getElementById('hud-slot-melee').classList.toggle('active', this.currentWeaponSlot === 'melee');
+        document.getElementById('hud-slot-bow').classList.toggle('active', this.currentWeaponSlot === 'bow');
+      }
+
+      update(game) {
+        if (this.hp <= 0) return;
+
+        if (this.attackCooldown > 0) this.attackCooldown--;
+        if (this.swingAnimation > 0) this.swingAnimation -= 0.1;
+
+        if (this.isPlayer) {
+          // Player movement using Arrow keys
+          let dx = 0, dy = 0;
+          if (game.keys['ArrowUp']) dy -= 1;
+          if (game.keys['ArrowDown']) dy += 1;
+          if (game.keys['ArrowLeft']) dx -= 1;
+          if (game.keys['ArrowRight']) dx += 1;
+
+          if (dx !== 0 && dy !== 0) {
+            dx *= 0.7071;
+            dy *= 0.7071;
+          }
+
+          this.x += dx * this.speed;
+          this.y += dy * this.speed;
+
+          // Face Mouse
+          this.angle = Math.atan2(game.mouse.y - this.y, game.mouse.x - this.x);
+        } else {
+          // CPU AI Logic
+          let target = game.entities.find(e => e !== this && e.hp > 0);
+          if (target) {
+            let dist = Math.hypot(target.x - this.x, target.y - this.y);
+            this.angle = Math.atan2(target.y - this.y, target.x - this.x);
+
+            if (dist > 50) {
+              this.x += Math.cos(this.angle) * (this.speed * 0.7);
+              this.y += Math.sin(this.angle) * (this.speed * 0.7);
+            }
+
+            if (dist < 250 && this.attackCooldown <= 0) {
+              this.currentWeaponSlot = dist < 70 ? 'melee' : 'bow';
+              this.attack(game);
+            }
+          }
+        }
+
+        // Arena Clamp
+        this.x = Math.max(this.radius, Math.min(game.canvas.width - this.radius, this.x));
+        this.y = Math.max(this.radius, Math.min(game.canvas.height - this.radius, this.y));
+      }
+
+      attack(game) {
+        if (this.attackCooldown > 0) return;
+
+        if (this.currentWeaponSlot === 'melee') {
+          this.attackCooldown = 25;
+          this.swingAnimation = 1.0; // Trigger swing visual
+
+          // Melee Hitbox check
+          game.entities.forEach(e => {
+            if (e !== this && e.hp > 0) {
+              let dist = Math.hypot(e.x - this.x, e.y - this.y);
+              let angleTo = Math.atan2(e.y - this.y, e.x - this.x);
+              let diff = Math.abs(this.angle - angleTo);
+
+              if (dist < 65 && diff < 1.2) {
+                let upgMult = this.isPlayer ? (1 + playerSave.upgrades.meleeLvl * 0.15) : 1;
+                let rarityMult = RARITIES[this.melee.rarity].statMult;
+                let damage = this.melee.baseDmg * rarityMult * upgMult;
+
+                e.takeDamage(damage, game, this);
+
+                if (this.isPlayer) game.sessionMeleePts += Math.floor(damage);
+              }
+            }
+          });
+        } else {
+          // Bow Shoot
+          this.attackCooldown = 35;
+          let upgMult = this.isPlayer ? (1 + playerSave.upgrades.bowLvl * 0.15) : 1;
+          let rarityMult = RARITIES[this.bow.rarity].statMult;
+          let damage = this.bow.baseDmg * rarityMult * upgMult;
+          let speed = (this.bow.speed || 12) * upgMult;
+
+          game.projectiles.push(new Arrow(this.x, this.y, this.angle, speed, damage, this));
+        }
+      }
+
+      takeDamage(amount, game, attacker) {
+        this.hp -= amount;
+        if (this.isPlayer) game.sessionArmorPts += Math.floor(amount);
+
+        // Blood / Impact particles
+        for (let i = 0; i < 6; i++) {
+          game.particles.push(new Particle(this.x, this.y, '#e11d48'));
+        }
+
+        if (this.hp <= 0 && attacker && attacker.isPlayer) {
+          game.sessionGold += 50;
+        }
+      }
+
+      render(ctx) {
+        if (this.hp <= 0) return;
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Draw Body Circle
+        ctx.fillStyle = this.faction === 'Steelheim' ? '#2b7fff' : this.faction === 'Arcadia' ? '#ffd700' : '#94a3b8';
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#000';
+        ctx.stroke();
+
+        // Draw Equipped Visible Armor (Outer Rim / Plate)
+        if (this.armor) {
+          ctx.strokeStyle = this.armor.color || RARITIES[this.armor.rarity].color;
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.arc(0, 0, this.radius + 2, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Faction Emblem on Body
+        drawNordicSymbol(ctx, 0, 0, 8, '#fff', this.faction);
+
+        // Rotation towards Mouse / Aim
+        ctx.rotate(this.angle);
+
+        // Draw Held Weapon & Swing Animation
+        if (this.currentWeaponSlot === 'melee') {
+          ctx.save();
+          let swingOffset = (1 - this.swingAnimation) * Math.PI * 0.8 - (Math.PI * 0.4);
+          ctx.rotate(swingOffset);
+
+          // Sword Blade
+          ctx.strokeStyle = RARITIES[this.melee.rarity].color;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(15, 5);
+          ctx.lineTo(45, 5);
+          ctx.stroke();
+
+          // Swing Arc Effect
+          if (this.swingAnimation > 0) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 50, -0.5, 0.5);
+            ctx.lineTo(0, 0);
+            ctx.fill();
+          }
+          ctx.restore();
+        } else {
+          // Bow Sprite
+          ctx.strokeStyle = RARITIES[this.bow.rarity].color;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(20, 0, 15, -Math.PI / 2, Math.PI / 2);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+
+        // Name Tag & HP Bar
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.name, this.x, this.y - 30);
+
+        let hpPercent = Math.max(0, this.hp / this.maxHp);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(this.x - 20, this.y - 26, 40, 5);
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(this.x - 20, this.y - 26, 40 * hpPercent, 5);
+      }
+    }
+
+    class Zombie {
+      constructor(x, y, wave) {
+        this.x = x;
+        this.y = y;
+        this.radius = 18;
+        this.speed = 2 + wave * 0.2;
+        this.maxHp = 40 + wave * 25;
+        this.hp = this.maxHp;
+        this.damage = 10 + wave * 5;
+        this.angle = 0;
+        this.attackCooldown = 0;
+      }
+
+      update(game) {
+        if (this.hp <= 0) return;
+        if (this.attackCooldown > 0) this.attackCooldown--;
+
+        let player = game.player;
+        if (player && player.hp > 0) {
+          this.angle = Math.atan2(player.y - this.y, player.x - this.x);
+          this.x += Math.cos(this.angle) * this.speed;
+          this.y += Math.sin(this.angle) * this.speed;
+
+          let dist = Math.hypot(player.x - this.x, player.y - this.y);
+          if (dist < this.radius + player.radius && this.attackCooldown <= 0) {
+            player.takeDamage(this.damage, game, this);
+            this.attackCooldown = 40;
+          }
+        }
+      }
+
+      takeDamage(amount, game, attacker) {
+        this.hp -= amount;
+        for (let i = 0; i < 4; i++) {
+          game.particles.push(new Particle(this.x, this.y, '#22c55e'));
+        }
+        if (this.hp <= 0 && attacker && attacker.isPlayer) {
+          game.sessionGold += 15;
+        }
+      }
+
+      render(ctx) {
+        if (this.hp <= 0) return;
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.fillStyle = '#15803d';
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#052e16';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.rotate(this.angle);
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(8, -6, 4, 4);
+        ctx.fillRect(8, 2, 4, 4);
+        ctx.restore();
+
+        // HP Bar
+        let hpPercent = Math.max(0, this.hp / this.maxHp);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(this.x - 15, this.y - 24, 30, 4);
+        ctx.fillStyle = '#e11d48';
+        ctx.fillRect(this.x - 15, this.y - 24, 30 * hpPercent, 4);
+      }
+    }
+
+    class Arrow {
+      constructor(x, y, angle, speed, damage, owner) {
+        this.x = x;
+        this.y = y;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.angle = angle;
+        this.damage = damage;
+        this.owner = owner;
+        this.active = true;
+      }
+
+      update(game) {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Out of bounds
+        if (this.x < 0 || this.x > game.canvas.width || this.y < 0 || this.y > game.canvas.height) {
+          this.active = false;
+        }
+
+        // Collision Check
+        game.entities.forEach(e => {
+          if (e !== this.owner && e.hp > 0) {
+            let dist = Math.hypot(e.x - this.x, e.y - this.y);
+            if (dist < e.radius + 5) {
+              e.takeDamage(this.damage, game, this.owner);
+              if (this.owner.isPlayer) game.sessionBowPts += Math.floor(this.damage);
+              this.active = false;
+            }
+          }
+        });
+      }
+
+      render(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-10, 0);
+        ctx.lineTo(10, 0);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 6;
+        this.vy = (Math.random() - 0.5) * 6;
+        this.color = color;
+        this.life = 1.0;
+        this.active = true;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life -= 0.05;
+        if (this.life <= 0) this.active = false;
+      }
+
+      render(ctx) {
+        ctx.save();
+        ctx.globalAlpha = this.life;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, 4, 4);
+        ctx.restore();
+      }
+    }
+
+    /* ==========================================
+       INITIALIZATION & USER EVENTS
+       ========================================== */
+    const game = new UltimateCrusadeGame();
+    let selectedFaction = 'Steelheim';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderFactionIcons();
+
+      const hasSave = loadGameData();
+
+      document.getElementById('btn-start-legacy').addEventListener('click', () => {
+        document.getElementById('screen-title').classList.add('hidden');
+        if (hasSave && playerSave.username) {
+          document.getElementById('screen-hub').classList.remove('hidden');
+          updateHubUI();
+        } else {
+          document.getElementById('screen-setup').classList.remove('hidden');
+        }
+      });
+
+      // Faction Selection
+      document.querySelectorAll('.faction-card').forEach(card => {
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.faction-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          selectedFaction = card.dataset.faction;
+        });
+      });
+
+      // Confirm Setup
+      document.getElementById('btn-confirm-setup').addEventListener('click', () => {
+        const username = document.getElementById('input-username').value.trim();
+        if (!username) {
+          alert("Please enter a username!");
+          return;
+        }
+
+        playerSave.username = username;
+        playerSave.faction = selectedFaction;
+        saveGameData();
+
+        document.getElementById('screen-setup').classList.add('hidden');
+        document.getElementById('screen-hub').classList.remove('hidden');
+        updateHubUI();
+      });
+
+      // Hub Tabs Navigation
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+          btn.classList.add('active');
+          document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+        });
+      });
+    });
+  </script>
+</body>
+</html>
