@@ -210,7 +210,6 @@
       overflow-y: auto;
     }
 
-    /* Mode Selection */
     .modes-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -406,7 +405,7 @@
     <button class="btn" id="btn-start-legacy">Start Legacy</button>
   </div>
 
-  <!-- SETUP SCREEN (Name & Faction) -->
+  <!-- SETUP SCREEN -->
   <div id="screen-setup" class="screen hidden">
     <div class="box">
       <h2>Create Your Champion</h2>
@@ -467,17 +466,17 @@
       <div class="modes-grid">
         <div class="mode-card">
           <h3>Casual Arena</h3>
-          <p>4-Player Free-for-All across dynamic maps against CPUs. Gold and combat action points awarded.</p>
+          <p>4-Player Free-for-All across dynamic maps with smart obstacle CPU AI.</p>
           <button class="btn" onclick="game.startMatch('casual')">Play Casual</button>
         </div>
         <div class="mode-card">
           <h3>Ranked Crusade</h3>
-          <p>Competitive FFA. Gain or lose ELO based on placement. Climb the ladder to reach Global #1!</p>
+          <p>Competitive FFA. Climb the global ladder up to Top #1!</p>
           <button class="btn" onclick="game.startMatch('ranked')">Play Ranked</button>
         </div>
         <div class="mode-card">
           <h3>Zombie Horde</h3>
-          <p>Survive endless waves of zombies in obstacle arenas. Ramping rewards and difficulty!</p>
+          <p>Survive endless waves of zombies in obstacle arenas. Ramping rewards!</p>
           <button class="btn" onclick="game.startMatch('zombies')">Play Zombies</button>
         </div>
       </div>
@@ -567,59 +566,20 @@
   </div>
 
   <script>
-    /* ==========================================
-       DATA & CONSTANTS
-       ========================================== */
     const RARITIES = {
       COMMON: { name: 'Common', color: '#a3a3a3', statMult: 1.0 },
-      UNCOMMON: { name: 'Uncommon', color: '#22c55e', statMult: 1.3 },
-      RARE: { name: 'Rare', color: '#3b82f6', statMult: 1.7 },
-      EPIC: { name: 'Epic', color: '#a855f7', statMult: 2.2 },
-      LEGENDARY: { name: 'Legendary', color: '#eab308', statMult: 3.0 },
-      MYTHIC: { name: 'Mythic', color: '#ef4444', statMult: 4.5 }
+      UNCOMMON: { name: 'Uncommon', color: '#22c55e', statMult: 1.2 },
+      RARE: { name: 'Rare', color: '#3b82f6', statMult: 1.4 },
+      EPIC: { name: 'Epic', color: '#a855f7', statMult: 1.7 },
+      LEGENDARY: { name: 'Legendary', color: '#eab308', statMult: 2.1 },
+      MYTHIC: { name: 'Mythic', color: '#ef4444', statMult: 2.6 }
     };
 
     const MAP_ENVIRONMENTS = [
-      {
-        id: 'tundra',
-        name: 'Nordic Tundra',
-        bg: '#1e293b',
-        gridColor: '#334155',
-        obstacleColor: '#0284c7',
-        obstacleBorder: '#38bdf8',
-        accentColor: '#93c5fd',
-        type: 'snow'
-      },
-      {
-        id: 'fortress',
-        name: 'Crusader Fortress',
-        bg: '#18181b',
-        gridColor: '#27272a',
-        obstacleColor: '#52525b',
-        obstacleBorder: '#a1a1aa',
-        accentColor: '#d4af37',
-        type: 'stone'
-      },
-      {
-        id: 'desert',
-        name: 'Arcadian Desert',
-        bg: '#291d09',
-        gridColor: '#45300c',
-        obstacleColor: '#854d0e',
-        obstacleBorder: '#facc15',
-        accentColor: '#fef08a',
-        type: 'sand'
-      },
-      {
-        id: 'shadow',
-        name: 'Shadow Dungeon',
-        bg: '#090514',
-        gridColor: '#1e1b4b',
-        obstacleColor: '#4c1d95',
-        obstacleBorder: '#c084fc',
-        accentColor: '#a855f7',
-        type: 'obsidian'
-      }
+      { id: 'tundra', name: 'Nordic Tundra', bg: '#0f172a', obstacleColor: '#0284c7', border: '#38bdf8' },
+      { id: 'fortress', name: 'Crusader Fortress', bg: '#18181b', obstacleColor: '#3f3f46', border: '#a1a1aa' },
+      { id: 'desert', name: 'Arcadian Desert', bg: '#291d09', obstacleColor: '#854d0e', border: '#facc15' },
+      { id: 'shadow', name: 'Shadow Dungeon', bg: '#090514', obstacleColor: '#4c1d95', border: '#c084fc' }
     ];
 
     const SKINS = [
@@ -632,34 +592,31 @@
 
     const MELEE_WEAPONS = [
       { id: 'm_iron_sword', name: 'Iron Sword', type: 'melee', rarity: 'COMMON', baseDmg: 20, cost: 0 },
-      { id: 'm_steel_broadsword', name: 'Steel Broadsword', type: 'melee', rarity: 'UNCOMMON', baseDmg: 32, cost: 150 },
-      { id: 'm_nordic_battleaxe', name: 'Nordic Battleaxe', type: 'melee', rarity: 'RARE', baseDmg: 48, cost: 400 },
-      { id: 'm_runic_greatsword', name: 'Runic Greatsword', type: 'melee', rarity: 'EPIC', baseDmg: 70, cost: 900 },
-      { id: 'm_valkyrie_blade', name: 'Valkyrie Blade', type: 'melee', rarity: 'LEGENDARY', baseDmg: 105, cost: 2000 },
-      { id: 'm_mjolnir_hammer', name: 'Mjolnir Crusher', type: 'melee', rarity: 'MYTHIC', baseDmg: 160, cost: 5000 }
+      { id: 'm_steel_broadsword', name: 'Steel Broadsword', type: 'melee', rarity: 'UNCOMMON', baseDmg: 28, cost: 150 },
+      { id: 'm_nordic_battleaxe', name: 'Nordic Battleaxe', type: 'melee', rarity: 'RARE', baseDmg: 38, cost: 400 },
+      { id: 'm_runic_greatsword', name: 'Runic Greatsword', type: 'melee', rarity: 'EPIC', baseDmg: 52, cost: 900 },
+      { id: 'm_valkyrie_blade', name: 'Valkyrie Blade', type: 'melee', rarity: 'LEGENDARY', baseDmg: 72, cost: 2000 },
+      { id: 'm_mjolnir_hammer', name: 'Mjolnir Crusher', type: 'melee', rarity: 'MYTHIC', baseDmg: 98, cost: 5000 }
     ];
 
     const BOW_WEAPONS = [
-      { id: 'b_short_bow', name: 'Short Bow', type: 'bow', rarity: 'COMMON', baseDmg: 15, speed: 10, cost: 0 },
-      { id: 'b_recurve_bow', name: 'Recurve Bow', type: 'bow', rarity: 'UNCOMMON', baseDmg: 24, speed: 12, cost: 150 },
-      { id: 'b_longbow', name: 'Yew Longbow', type: 'bow', rarity: 'RARE', baseDmg: 38, speed: 14, cost: 400 },
-      { id: 'b_arcane_bow', name: 'Arcane Greatbow', type: 'bow', rarity: 'EPIC', baseDmg: 58, speed: 17, cost: 900 },
-      { id: 'b_phoenix_bow', name: 'Phoenix Bow', type: 'bow', rarity: 'LEGENDARY', baseDmg: 88, speed: 20, cost: 2000 },
-      { id: 'b_celestial_bow', name: 'Celestial Starbow', type: 'bow', rarity: 'MYTHIC', baseDmg: 135, speed: 24, cost: 5000 }
+      { id: 'b_short_bow', name: 'Short Bow', type: 'bow', rarity: 'COMMON', baseDmg: 12, speed: 10, cost: 0 },
+      { id: 'b_recurve_bow', name: 'Recurve Bow', type: 'bow', rarity: 'UNCOMMON', baseDmg: 18, speed: 12, cost: 150 },
+      { id: 'b_longbow', name: 'Yew Longbow', type: 'bow', rarity: 'RARE', baseDmg: 26, speed: 14, cost: 400 },
+      { id: 'b_arcane_bow', name: 'Arcane Greatbow', type: 'bow', rarity: 'EPIC', baseDmg: 36, speed: 16, cost: 900 },
+      { id: 'b_phoenix_bow', name: 'Phoenix Bow', type: 'bow', rarity: 'LEGENDARY', baseDmg: 50, speed: 18, cost: 2000 },
+      { id: 'b_celestial_bow', name: 'Celestial Starbow', type: 'bow', rarity: 'MYTHIC', baseDmg: 70, speed: 20, cost: 5000 }
     ];
 
     const ARMORS = [
       { id: 'a_padded', name: 'Padded Leather', rarity: 'COMMON', hpBonus: 0, cost: 0, color: '#8b5a2b' },
-      { id: 'a_chainmail', name: 'Chainmail Hauberk', rarity: 'UNCOMMON', hpBonus: 40, cost: 150, color: '#94a3b8' },
-      { id: 'a_scale', name: 'Steel Scale Armor', rarity: 'RARE', hpBonus: 90, cost: 400, color: '#475569' },
-      { id: 'a_knight', name: 'Knight Templar Plate', rarity: 'EPIC', hpBonus: 160, cost: 900, color: '#38bdf8' },
-      { id: 'a_dragon', name: 'Dragon Scale Plate', rarity: 'LEGENDARY', hpBonus: 260, cost: 2000, color: '#eab308' },
-      { id: 'a_godly', name: 'Aegis Godplate', rarity: 'MYTHIC', hpBonus: 420, cost: 5000, color: '#ef4444' }
+      { id: 'a_chainmail', name: 'Chainmail Hauberk', rarity: 'UNCOMMON', hpBonus: 30, cost: 150, color: '#94a3b8' },
+      { id: 'a_scale', name: 'Steel Scale Armor', rarity: 'RARE', hpBonus: 65, cost: 400, color: '#475569' },
+      { id: 'a_knight', name: 'Knight Templar Plate', rarity: 'EPIC', hpBonus: 110, cost: 900, color: '#38bdf8' },
+      { id: 'a_dragon', name: 'Dragon Scale Plate', rarity: 'LEGENDARY', hpBonus: 170, cost: 2000, color: '#eab308' },
+      { id: 'a_godly', name: 'Aegis Godplate', rarity: 'MYTHIC', hpBonus: 250, cost: 5000, color: '#ef4444' }
     ];
 
-    /* ==========================================
-       STATE MANAGEMENT & SAVE SYSTEM
-       ========================================== */
     let playerSave = {
       username: '',
       faction: '',
@@ -669,55 +626,28 @@
       ptsArmor: 0,
       elo: 1000,
       inventory: ['m_iron_sword', 'b_short_bow', 'a_padded', 'skin_default'],
-      equipped: {
-        melee: 'm_iron_sword',
-        bow: 'b_short_bow',
-        armor: 'a_padded',
-        skin: 'skin_default'
-      },
-      upgrades: {
-        meleeLvl: 0,
-        bowLvl: 0,
-        armorLvl: 0
-      }
+      equipped: { melee: 'm_iron_sword', bow: 'b_short_bow', armor: 'a_padded', skin: 'skin_default' },
+      upgrades: { meleeLvl: 0, bowLvl: 0, armorLvl: 0 }
     };
 
-    function saveGameData() {
-      localStorage.setItem('ultimate_crusade_save', JSON.stringify(playerSave));
-    }
-
+    function saveGameData() { localStorage.setItem('ultimate_crusade_save', JSON.stringify(playerSave)); }
     function loadGameData() {
       const data = localStorage.getItem('ultimate_crusade_save');
-      if (data) {
-        playerSave = Object.assign(playerSave, JSON.parse(data));
-        return true;
-      }
+      if (data) { playerSave = Object.assign(playerSave, JSON.parse(data)); return true; }
       return false;
     }
 
-    /* ==========================================
-       CANVAS FACTION & SKIN RENDERERS
-       ========================================== */
     function drawNordicSymbol(ctx, x, y, size, color, faction) {
       ctx.save();
       ctx.translate(x, y);
       ctx.strokeStyle = color;
       ctx.fillStyle = color;
       ctx.lineWidth = 3;
-      ctx.lineCap = 'round';
-
       if (faction === 'Steelheim') {
-        ctx.beginPath();
-        ctx.moveTo(0, -size);
-        ctx.lineTo(size, size);
-        ctx.lineTo(-size, size);
-        ctx.closePath();
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size, size); ctx.lineTo(-size, size); ctx.closePath(); ctx.stroke();
       } else if (faction === 'Arcadia') {
-        ctx.beginPath();
-        ctx.arc(0, 0, size * 0.7, 0, Math.PI * 2);
-        ctx.stroke();
-      } else if (faction === 'Smithsten') {
+        ctx.beginPath(); ctx.arc(0, 0, size * 0.7, 0, Math.PI * 2); ctx.stroke();
+      } else {
         ctx.fillRect(-size * 0.5, -size * 0.5, size, size);
       }
       ctx.restore();
@@ -726,51 +656,20 @@
     function drawSkinDetails(ctx, skinId, radius) {
       ctx.save();
       if (skinId === 'skin_assassin') {
-        // Dark Hood & Eyes
         ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.arc(0, 0, radius + 1, Math.PI * 0.8, Math.PI * 2.2);
-        ctx.fill();
-        ctx.fillStyle = '#ef4444'; // Red Eyes
-        ctx.fillRect(-6, -4, 3, 2);
-        ctx.fillRect(3, -4, 3, 2);
+        ctx.beginPath(); ctx.arc(0, 0, radius + 1, Math.PI * 0.8, Math.PI * 2.2); ctx.fill();
+        ctx.fillStyle = '#ef4444'; ctx.fillRect(-6, -4, 3, 2); ctx.fillRect(3, -4, 3, 2);
       } else if (skinId === 'skin_paladin') {
-        // Golden Crown
         ctx.fillStyle = '#facc15';
-        ctx.beginPath();
-        ctx.moveTo(-12, -radius);
-        ctx.lineTo(-6, -radius - 8);
-        ctx.lineTo(0, -radius - 2);
-        ctx.lineTo(6, -radius - 8);
-        ctx.lineTo(12, -radius);
-        ctx.closePath();
-        ctx.fill();
+        ctx.beginPath(); ctx.moveTo(-12, -radius); ctx.lineTo(-6, -radius - 8); ctx.lineTo(0, -radius - 2); ctx.lineTo(6, -radius - 8); ctx.lineTo(12, -radius); ctx.closePath(); ctx.fill();
       } else if (skinId === 'skin_berserker') {
-        // Viking Horns
-        ctx.fillStyle = '#e2e8f0';
-        ctx.beginPath();
-        ctx.moveTo(-radius + 2, -2);
-        ctx.quadraticCurveTo(-radius - 12, -18, -radius + 4, -radius - 4);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(radius - 2, -2);
-        ctx.quadraticCurveTo(radius + 12, -18, radius - 4, -radius - 4);
-        ctx.stroke();
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(-10, -5, 12, Math.PI, Math.PI * 1.5); ctx.stroke();
+        ctx.beginPath(); ctx.arc(10, -5, 12, Math.PI * 1.5, 0); ctx.stroke();
       } else if (skinId === 'skin_lich') {
-        // Glowing Skeleton Face
-        ctx.fillStyle = '#4ade80';
-        ctx.beginPath();
-        ctx.arc(-5, -3, 3, 0, Math.PI * 2);
-        ctx.arc(5, -3, 3, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = '#4ade80'; ctx.beginPath(); ctx.arc(-5, -3, 3, 0, Math.PI * 2); ctx.arc(5, -3, 3, 0, Math.PI * 2); ctx.fill();
       } else {
-        // Default Helmet Line
-        ctx.strokeStyle = '#475569';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(0, -radius);
-        ctx.lineTo(0, radius);
-        ctx.stroke();
+        ctx.strokeStyle = '#475569'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(0, -radius); ctx.lineTo(0, radius); ctx.stroke();
       }
       ctx.restore();
     }
@@ -790,36 +689,20 @@
     function drawItemPreview(canvas, item) {
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-
       ctx.save();
       if (item.type === 'melee') {
-        ctx.translate(cx, cy);
-        ctx.rotate(-Math.PI / 4);
-        ctx.strokeStyle = RARITIES[item.rarity].color;
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(0, 15);
-        ctx.lineTo(0, -18);
-        ctx.stroke();
+        ctx.translate(25, 25); ctx.rotate(-Math.PI / 4);
+        ctx.strokeStyle = RARITIES[item.rarity].color; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(0, 15); ctx.lineTo(0, -18); ctx.stroke();
       } else if (item.type === 'bow') {
-        ctx.translate(cx, cy);
-        ctx.strokeStyle = RARITIES[item.rarity].color;
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(0, 0, 16, -Math.PI / 2, Math.PI / 2);
-        ctx.stroke();
+        ctx.translate(25, 25); ctx.strokeStyle = RARITIES[item.rarity].color; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, 16, -Math.PI / 2, Math.PI / 2); ctx.stroke();
       } else {
-        ctx.fillStyle = item.color || RARITIES[item.rarity].color;
-        ctx.fillRect(cx - 12, cy - 14, 24, 28);
+        ctx.fillStyle = item.color || RARITIES[item.rarity].color; ctx.fillRect(13, 11, 24, 28);
       }
       ctx.restore();
     }
 
-    /* ==========================================
-       UI LOGIC & FORGE SHOP
-       ========================================== */
     function updateHubUI() {
       document.getElementById('hub-username').innerText = playerSave.username;
       document.getElementById('hub-faction').innerText = playerSave.faction;
@@ -840,184 +723,85 @@
         drawNordicSymbol(ctx, 20, 20, 14, col, playerSave.faction);
       }
 
-      renderShop();
-      renderSkins();
-      renderForge();
-      renderLeaderboard();
+      renderShop(); renderSkins(); renderForge(); renderLeaderboard();
     }
 
     function renderShop() {
       const container = document.getElementById('shop-items-container');
       container.innerHTML = '';
-      const allItems = [...MELEE_WEAPONS, ...BOW_WEAPONS, ...ARMORS];
-
-      allItems.forEach(item => {
+      [...MELEE_WEAPONS, ...BOW_WEAPONS, ...ARMORS].forEach(item => {
         const isBought = playerSave.inventory.includes(item.id);
         const isEquipped = playerSave.equipped.melee === item.id || playerSave.equipped.bow === item.id || playerSave.equipped.armor === item.id;
-
         const div = document.createElement('div');
         div.className = `shop-item ${item.rarity.toLowerCase()}`;
-        
-        const previewCanvas = document.createElement('canvas');
-        previewCanvas.className = 'item-preview';
-        previewCanvas.width = 50;
-        previewCanvas.height = 50;
+        const previewCanvas = document.createElement('canvas'); previewCanvas.className = 'item-preview'; previewCanvas.width = 50; previewCanvas.height = 50;
         drawItemPreview(previewCanvas, item);
 
-        let actionBtnHtml = '';
-        if (isEquipped) {
-          actionBtnHtml = `<span style="color:var(--primary); font-weight:bold;">Equipped</span>`;
-        } else if (isBought) {
-          actionBtnHtml = `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="equipItem('${item.id}')">Equip</button>`;
-        } else {
-          actionBtnHtml = `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="buyItem('${item.id}', ${item.cost})">Buy (🪙${item.cost})</button>`;
-        }
+        let btnHtml = isEquipped ? `<span style="color:var(--primary);">Equipped</span>` :
+          isBought ? `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="equipItem('${item.id}')">Equip</button>` :
+          `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="buyItem('${item.id}', ${item.cost})">Buy (🪙${item.cost})</button>`;
 
-        const rarityObj = RARITIES[item.rarity];
-        div.innerHTML = `
-          <div style="display:flex; align-items:center; gap:10px;">
-            <div id="prev-holder-${item.id}"></div>
-            <div>
-              <strong>${item.name}</strong> 
-              <span class="rarity-tag rarity-${item.rarity.toLowerCase()}">${rarityObj.name}</span>
-            </div>
-          </div>
-          <div>${actionBtnHtml}</div>
-        `;
-
+        div.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><div id="prev-${item.id}"></div><div><strong>${item.name}</strong> <span class="rarity-tag rarity-${item.rarity.toLowerCase()}">${item.rarity}</span></div></div><div>${btnHtml}</div>`;
         container.appendChild(div);
-        div.querySelector(`#prev-holder-${item.id}`).appendChild(previewCanvas);
+        div.querySelector(`#prev-${item.id}`).appendChild(previewCanvas);
       });
     }
 
     function renderSkins() {
       const container = document.getElementById('skins-items-container');
       container.innerHTML = '';
-
       SKINS.forEach(skin => {
         const isBought = playerSave.inventory.includes(skin.id);
         const isEquipped = playerSave.equipped.skin === skin.id;
-
-        const div = document.createElement('div');
-        div.className = `shop-item ${skin.rarity.toLowerCase()}`;
-
-        const previewCanvas = document.createElement('canvas');
-        previewCanvas.className = 'item-preview';
-        previewCanvas.width = 50;
-        previewCanvas.height = 50;
+        const div = document.createElement('div'); div.className = `shop-item ${skin.rarity.toLowerCase()}`;
+        const previewCanvas = document.createElement('canvas'); previewCanvas.className = 'item-preview'; previewCanvas.width = 50; previewCanvas.height = 50;
         const ctx = previewCanvas.getContext('2d');
-        ctx.fillStyle = RARITIES[skin.rarity].color;
-        ctx.beginPath();
-        ctx.arc(25, 25, 18, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = RARITIES[skin.rarity].color; ctx.beginPath(); ctx.arc(25, 25, 18, 0, Math.PI * 2); ctx.fill();
         drawSkinDetails(ctx, skin.id, 18);
 
-        let actionBtnHtml = '';
-        if (isEquipped) {
-          actionBtnHtml = `<span style="color:var(--primary); font-weight:bold;">Equipped</span>`;
-        } else if (isBought) {
-          actionBtnHtml = `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="equipSkin('${skin.id}')">Equip</button>`;
-        } else {
-          actionBtnHtml = `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="buySkin('${skin.id}', ${skin.cost})">Buy (🪙${skin.cost})</button>`;
-        }
+        let btnHtml = isEquipped ? `<span style="color:var(--primary);">Equipped</span>` :
+          isBought ? `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="equipSkin('${skin.id}')">Equip</button>` :
+          `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="buySkin('${skin.id}', ${skin.cost})">Buy (🪙${skin.cost})</button>`;
 
-        div.innerHTML = `
-          <div style="display:flex; align-items:center; gap:10px;">
-            <div id="prev-skin-${skin.id}"></div>
-            <div>
-              <strong>${skin.name}</strong> 
-              <span class="rarity-tag rarity-${skin.rarity.toLowerCase()}">${skin.rarity}</span>
-            </div>
-          </div>
-          <div>${actionBtnHtml}</div>
-        `;
-
+        div.innerHTML = `<div style="display:flex; align-items:center; gap:10px;"><div id="prev-${skin.id}"></div><div><strong>${skin.name}</strong></div></div><div>${btnHtml}</div>`;
         container.appendChild(div);
-        div.querySelector(`#prev-skin-${skin.id}`).appendChild(previewCanvas);
+        div.querySelector(`#prev-${skin.id}`).appendChild(previewCanvas);
       });
     }
 
-    function buyItem(id, cost) {
-      if (playerSave.gold >= cost) {
-        playerSave.gold -= cost;
-        playerSave.inventory.push(id);
-        saveGameData();
-        updateHubUI();
-      } else { alert("Not enough gold!"); }
-    }
-
-    function buySkin(id, cost) {
-      if (playerSave.gold >= cost) {
-        playerSave.gold -= cost;
-        playerSave.inventory.push(id);
-        saveGameData();
-        updateHubUI();
-      } else { alert("Not enough gold!"); }
-    }
-
+    function buyItem(id, cost) { if (playerSave.gold >= cost) { playerSave.gold -= cost; playerSave.inventory.push(id); saveGameData(); updateHubUI(); } }
+    function buySkin(id, cost) { if (playerSave.gold >= cost) { playerSave.gold -= cost; playerSave.inventory.push(id); saveGameData(); updateHubUI(); } }
     function equipItem(id) {
       if (MELEE_WEAPONS.some(w => w.id === id)) playerSave.equipped.melee = id;
       if (BOW_WEAPONS.some(w => w.id === id)) playerSave.equipped.bow = id;
       if (ARMORS.some(a => a.id === id)) playerSave.equipped.armor = id;
-      saveGameData();
-      updateHubUI();
+      saveGameData(); updateHubUI();
     }
-
-    function equipSkin(id) {
-      playerSave.equipped.skin = id;
-      saveGameData();
-      updateHubUI();
-    }
+    function equipSkin(id) { playerSave.equipped.skin = id; saveGameData(); updateHubUI(); }
 
     function renderForge() {
-      const container = document.getElementById('forge-upgrades-container');
-      container.innerHTML = '';
-
-      const upgrades = [
-        { key: 'meleeLvl', name: 'Melee Mastery', ptType: 'ptsMelee' },
-        { key: 'bowLvl', name: 'Archery Mastery', ptType: 'ptsBow' },
-        { key: 'armorLvl', name: 'Armorsmithing', ptType: 'ptsArmor' }
-      ];
-
-      upgrades.forEach(u => {
+      const container = document.getElementById('forge-upgrades-container'); container.innerHTML = '';
+      [{ key: 'meleeLvl', name: 'Melee Mastery', ptType: 'ptsMelee' },
+       { key: 'bowLvl', name: 'Archery Mastery', ptType: 'ptsBow' },
+       { key: 'armorLvl', name: 'Armorsmithing', ptType: 'ptsArmor' }].forEach(u => {
         let currentLvl = playerSave.upgrades[u.key];
         let cost = (currentLvl + 1) * 100;
         let canAfford = playerSave[u.ptType] >= cost;
-
-        let div = document.createElement('div');
-        div.className = 'shop-item uncommon';
-        div.innerHTML = `
-          <div>
-            <strong>${u.name} (Lvl ${currentLvl})</strong>
-          </div>
-          <button class="btn" style="padding:4px 10px; font-size:0.8rem;" ${!canAfford ? 'disabled style="opacity:0.5;"' : ''} onclick="upgradeSkill('${u.key}', '${u.ptType}', ${cost})">
-            Upgrade (${cost} Pts)
-          </button>
-        `;
+        let div = document.createElement('div'); div.className = 'shop-item uncommon';
+        div.innerHTML = `<div><strong>${u.name} (Lvl ${currentLvl})</strong></div><button class="btn" style="padding:4px 10px; font-size:0.8rem;" ${!canAfford ? 'disabled style="opacity:0.5;"' : ''} onclick="upgradeSkill('${u.key}', '${u.ptType}', ${cost})">Upgrade (${cost} Pts)</button>`;
         container.appendChild(div);
       });
     }
 
-    function upgradeSkill(key, ptType, cost) {
-      if (playerSave[ptType] >= cost) {
-        playerSave[ptType] -= cost;
-        playerSave.upgrades[key]++;
-        saveGameData();
-        updateHubUI();
-      }
-    }
+    function upgradeSkill(key, ptType, cost) { if (playerSave[ptType] >= cost) { playerSave[ptType] -= cost; playerSave.upgrades[key]++; saveGameData(); updateHubUI(); } }
 
     function renderLeaderboard() {
-      const tbody = document.getElementById('leaderboard-body');
-      tbody.innerHTML = '';
+      const tbody = document.getElementById('leaderboard-body'); tbody.innerHTML = '';
       let myRank = Math.max(1, Math.floor(1001 - (playerSave.elo - 800) / 1.5));
-
       for (let i = 1; i <= 8; i++) {
-        let tr = document.createElement('tr');
-        tr.style.borderBottom = '1px solid #2d3748';
+        let tr = document.createElement('tr'); tr.style.borderBottom = '1px solid #2d3748';
         if (i === myRank) {
-          tr.style.color = 'var(--primary)';
-          tr.innerHTML = `<td style="padding:8px;">#${i}</td><td>${playerSave.username} (YOU)</td><td>${playerSave.faction}</td><td>${playerSave.elo}</td>`;
+          tr.style.color = 'var(--primary)'; tr.innerHTML = `<td style="padding:8px;">#${i}</td><td>${playerSave.username} (YOU)</td><td>${playerSave.faction}</td><td>${playerSave.elo}</td>`;
         } else {
           tr.innerHTML = `<td style="padding:8px;">#${i}</td><td>Crusader_${1000 - i * 3}</td><td>Steelheim</td><td>${2500 - (i * 120)}</td>`;
         }
@@ -1025,63 +809,32 @@
       }
     }
 
-    /* ==========================================
-       GAME ENGINE & ARENAS
-       ========================================== */
     class UltimateCrusadeGame {
       constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.mode = 'casual';
-        this.running = false;
-        
-        this.keys = {};
-        this.mouse = { x: 0, y: 0 };
-        this.entities = [];
-        this.obstacles = [];
-        this.projectiles = [];
-        this.particles = [];
-        this.player = null;
-        this.map = MAP_ENVIRONMENTS[0];
-
-        this.wave = 1;
-        this.sessionGold = 0;
-        this.sessionMeleePts = 0;
-        this.sessionBowPts = 0;
-        this.sessionArmorPts = 0;
-
+        this.mode = 'casual'; this.running = false;
+        this.keys = {}; this.mouse = { x: 0, y: 0 };
+        this.entities = []; this.obstacles = []; this.projectiles = []; this.particles = [];
+        this.player = null; this.map = MAP_ENVIRONMENTS[0];
+        this.wave = 1; this.sessionGold = 0; this.sessionMeleePts = 0; this.sessionBowPts = 0; this.sessionArmorPts = 0;
         this.initControls();
       }
 
       initControls() {
         window.addEventListener('keydown', e => {
-          this.keys[e.key.toLowerCase()] = true;
-          this.keys[e.code] = true;
+          this.keys[e.key.toLowerCase()] = true; this.keys[e.code] = true;
           if (e.code === 'Space' && this.player && this.running) this.player.switchWeapon();
         });
-        window.addEventListener('keyup', e => {
-          this.keys[e.key.toLowerCase()] = false;
-          this.keys[e.code] = false;
-        });
-        window.addEventListener('mousemove', e => {
-          this.mouse.x = e.clientX;
-          this.mouse.y = e.clientY;
-        });
-        window.addEventListener('mousedown', e => {
-          if (this.running && this.player && e.button === 0) this.player.attack(this);
-        });
+        window.addEventListener('keyup', e => { this.keys[e.key.toLowerCase()] = false; this.keys[e.code] = false; });
+        window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
+        window.addEventListener('mousedown', e => { if (this.running && this.player && e.button === 0) this.player.attack(this); });
       }
 
-      resizeCanvas() {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
-      }
+      resizeCanvas() { this.canvas.width = window.innerWidth; this.canvas.height = window.innerHeight; }
 
       startMatch(mode) {
-        this.mode = mode;
-        this.resizeCanvas();
-        
-        // Pick Random Map Environment
+        this.mode = mode; this.resizeCanvas();
         this.map = MAP_ENVIRONMENTS[Math.floor(Math.random() * MAP_ENVIRONMENTS.length)];
 
         document.getElementById('screen-hub').classList.add('hidden');
@@ -1089,67 +842,40 @@
         document.getElementById('post-game-overlay').classList.add('hidden');
         document.getElementById('hud-mode-info').innerText = `${mode.toUpperCase()} - ${this.map.name}`;
 
-        this.entities = [];
-        this.obstacles = [];
-        this.projectiles = [];
-        this.particles = [];
-        this.sessionGold = 0;
-        this.sessionMeleePts = 0;
-        this.sessionBowPts = 0;
-        this.sessionArmorPts = 0;
+        this.entities = []; this.obstacles = []; this.projectiles = []; this.particles = [];
+        this.sessionGold = 0; this.sessionMeleePts = 0; this.sessionBowPts = 0; this.sessionArmorPts = 0;
 
-        // Generate Map Obstacles
         this.generateMapObstacles();
 
-        // Spawn Player
         const pMelee = MELEE_WEAPONS.find(w => w.id === playerSave.equipped.melee);
         const pBow = BOW_WEAPONS.find(w => w.id === playerSave.equipped.bow);
         const pArmor = ARMORS.find(a => a.id === playerSave.equipped.armor);
 
-        this.player = new Fighter(
-          120, 120,
-          playerSave.username, playerSave.faction,
-          pMelee, pBow, pArmor, playerSave.equipped.skin,
-          true
-        );
+        this.player = new Fighter(120, 120, playerSave.username, playerSave.faction, pMelee, pBow, pArmor, playerSave.equipped.skin, true);
         this.entities.push(this.player);
 
         if (mode === 'casual' || mode === 'ranked') {
-          const corners = [
-            { x: this.canvas.width - 120, y: 120 },
-            { x: 120, y: this.canvas.height - 120 },
-            { x: this.canvas.width - 120, y: this.canvas.height - 120 }
-          ];
-
+          const corners = [{ x: this.canvas.width - 120, y: 120 }, { x: 120, y: this.canvas.height - 120 }, { x: this.canvas.width - 120, y: this.canvas.height - 120 }];
           const factions = ['Steelheim', 'Arcadia', 'Smithsten'];
           corners.forEach((c, idx) => {
-            let cpu = new Fighter(
-              c.x, c.y, `CPU_${idx+1}`, factions[idx % 3],
-              MELEE_WEAPONS[idx % MELEE_WEAPONS.length],
-              BOW_WEAPONS[idx % BOW_WEAPONS.length],
-              ARMORS[idx % ARMORS.length],
-              SKINS[idx % SKINS.length].id,
-              false
-            );
+            let cpu = new Fighter(c.x, c.y, `CPU_${idx+1}`, factions[idx % 3], MELEE_WEAPONS[0], BOW_WEAPONS[0], ARMORS[0], SKINS[idx % SKINS.length].id, false);
             this.entities.push(cpu);
           });
         } else {
-          this.wave = 1;
-          this.spawnZombieWave();
+          this.wave = 1; this.spawnZombieWave();
         }
 
-        this.running = true;
-        requestAnimationFrame(() => this.loop());
+        this.running = true; requestAnimationFrame(() => this.loop());
       }
 
       generateMapObstacles() {
-        let cx = this.canvas.width / 2;
-        let cy = this.canvas.height / 2;
-        // Central Pillars & Cover blocks
-        this.obstacles.push({ x: cx - 120, y: cy - 120, w: 80, h: 80 });
-        this.obstacles.push({ x: cx + 40, y: cy - 120, w: 80, h: 80 });
-        this.obstacles.push({ x: cx - 120, y: cy + 40, w: 80, h: 80 });
-        this.obstacles.push({ x: cx + 40, y: cy + 40, w: 80, h: 80 });
+        let cx = this.canvas.width / 2; let cy = this.canvas.height / 2;
+        this.obstacles = [
+          { x: cx - 180, y: cy - 180, w: 90, h: 90 },
+          { x: cx + 90, y: cy - 180, w: 90, h: 90 },
+          { x: cx - 180, y: cy + 90, w: 90, h: 90 },
+          { x: cx + 90, y: cy + 90, w: 90, h: 90 }
+        ];
       }
 
       spawnZombieWave() {
@@ -1164,8 +890,7 @@
 
       loop() {
         if (!this.running) return;
-        this.update();
-        this.render();
+        this.update(); this.render();
         requestAnimationFrame(() => this.loop());
       }
 
@@ -1182,11 +907,8 @@
         this.particles = this.particles.filter(p => p.active);
 
         if (this.mode === 'zombies') {
-          let zombiesLeft = this.entities.filter(e => e instanceof Zombie && e.hp > 0).length;
-          if (zombiesLeft === 0) {
-            this.wave++;
-            this.sessionGold += 50 * this.wave;
-            this.spawnZombieWave();
+          if (this.entities.filter(e => e instanceof Zombie && e.hp > 0).length === 0) {
+            this.wave++; this.sessionGold += 50 * this.wave; this.spawnZombieWave();
           }
         }
 
@@ -1199,26 +921,15 @@
       }
 
       render() {
-        // Dynamic Map Environment Drawing
         this.ctx.fillStyle = this.map.bg;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Grid Lines
-        this.ctx.strokeStyle = this.map.gridColor;
-        this.ctx.lineWidth = 2;
-        for (let x = 0; x < this.canvas.width; x += 80) {
-          this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, this.canvas.height); this.ctx.stroke();
-        }
-        for (let y = 0; y < this.canvas.height; y += 80) {
-          this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(this.canvas.width, y); this.ctx.stroke();
-        }
-
-        // Obstacles (Cover)
+        // Draw Map Cover Pillars
         this.obstacles.forEach(o => {
           this.ctx.fillStyle = this.map.obstacleColor;
           this.ctx.fillRect(o.x, o.y, o.w, o.h);
-          this.ctx.strokeStyle = this.map.obstacleBorder;
-          this.ctx.lineWidth = 3;
+          this.ctx.strokeStyle = this.map.border;
+          this.ctx.lineWidth = 4;
           this.ctx.strokeRect(o.x, o.y, o.w, o.h);
         });
 
@@ -1229,32 +940,23 @@
 
       endMatch(won) {
         this.running = false;
-
         let placement = this.entities.filter(e => e instanceof Fighter && e.hp > 0).length + (won ? 0 : 1);
         let goldReward = this.sessionGold + (won ? 200 : placement === 2 ? 100 : 50);
-
-        let eloDelta = 0;
-        if (this.mode === 'ranked') {
-          eloDelta = won ? 32 : placement === 2 ? 12 : placement === 3 ? -8 : -25;
-        }
+        let eloDelta = this.mode === 'ranked' ? (won ? 32 : placement === 2 ? 12 : placement === 3 ? -8 : -25) : 0;
 
         playerSave.gold += goldReward;
         playerSave.ptsMelee += this.sessionMeleePts;
         playerSave.ptsBow += this.sessionBowPts;
         playerSave.ptsArmor += this.sessionArmorPts;
         playerSave.elo = Math.max(100, playerSave.elo + eloDelta);
-
         saveGameData();
 
         document.getElementById('post-title').innerText = won ? 'VICTORY!' : 'DEFEAT';
         document.getElementById('post-title').style.color = won ? '#22c55e' : '#ef4444';
-        document.getElementById('post-summary').innerText = this.mode === 'zombies' ? 
-          `Survived ${this.wave} Zombie Waves!` : `Finished Rank #${placement} in the arena.`;
-
+        document.getElementById('post-summary').innerText = this.mode === 'zombies' ? `Survived ${this.wave} Waves!` : `Ranked #${placement} in Arena.`;
         document.getElementById('post-gold').innerText = `+${goldReward}`;
         document.getElementById('post-pts').innerText = `+${this.sessionMeleePts + this.sessionBowPts + this.sessionArmorPts}`;
         document.getElementById('post-elo').innerText = eloDelta >= 0 ? `+${eloDelta}` : `${eloDelta}`;
-
         document.getElementById('post-game-overlay').classList.remove('hidden');
       }
 
@@ -1265,32 +967,14 @@
       }
     }
 
-    /* ==========================================
-       ENTITIES
-       ========================================== */
     class Fighter {
       constructor(x, y, name, faction, melee, bow, armor, skin, isPlayer = false) {
-        this.x = x;
-        this.y = y;
-        this.radius = 20;
-        this.name = name;
-        this.faction = faction;
-        this.isPlayer = isPlayer;
-
-        this.melee = melee;
-        this.bow = bow;
-        this.armor = armor;
-        this.skin = skin || 'skin_default';
-
-        this.currentWeaponSlot = 'melee';
-        this.angle = 0;
-        this.speed = 4;
-
-        this.maxHp = 100 + (armor ? armor.hpBonus : 0);
-        this.hp = this.maxHp;
-
+        this.x = x; this.y = y; this.radius = 20;
+        this.name = name; this.faction = faction; this.isPlayer = isPlayer;
+        this.melee = melee; this.bow = bow; this.armor = armor; this.skin = skin || 'skin_default';
+        this.currentWeaponSlot = 'melee'; this.angle = 0; this.speed = 4;
+        this.maxHp = 100 + (armor ? armor.hpBonus : 0); this.hp = this.maxHp;
         this.attackCooldown = 0;
-        this.swingAnimation = 0;
       }
 
       switchWeapon() {
@@ -1301,12 +985,9 @@
 
       update(game) {
         if (this.hp <= 0) return;
-
         if (this.attackCooldown > 0) this.attackCooldown--;
-        if (this.swingAnimation > 0) this.swingAnimation -= 0.1;
 
-        let prevX = this.x;
-        let prevY = this.y;
+        let prevX = this.x, prevY = this.y;
 
         if (this.isPlayer) {
           let dx = 0, dy = 0;
@@ -1314,40 +995,53 @@
           if (game.keys['ArrowDown']) dy += 1;
           if (game.keys['ArrowLeft']) dx -= 1;
           if (game.keys['ArrowRight']) dx += 1;
-
           if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
 
           this.x += dx * this.speed;
           this.y += dy * this.speed;
           this.angle = Math.atan2(game.mouse.y - this.y, game.mouse.x - this.x);
         } else {
-          // Nearest Target Intelligence AI (CPUs attack each other too)
+          // Dynamic Target Evaluation (Target Closest Fighter, Player or CPU)
           let enemies = game.entities.filter(e => e !== this && e.hp > 0);
           if (enemies.length > 0) {
             enemies.sort((a, b) => Math.hypot(a.x - this.x, a.y - this.y) - Math.hypot(b.x - this.x, b.y - this.y));
             let target = enemies[0];
             let dist = Math.hypot(target.x - this.x, target.y - this.y);
 
-            this.angle = Math.atan2(target.y - this.y, target.x - this.x);
+            let desiredAngle = Math.atan2(target.y - this.y, target.x - this.x);
 
-            if (dist > 50) {
-              this.x += Math.cos(this.angle) * (this.speed * 0.7);
-              this.y += Math.sin(this.angle) * (this.speed * 0.7);
+            // CPU Obstacle Navigation Raycasting
+            let moveX = Math.cos(desiredAngle);
+            let moveY = Math.sin(desiredAngle);
+            let checkX = this.x + moveX * 40;
+            let checkY = this.y + moveY * 40;
+
+            let blocked = game.obstacles.some(o => checkX > o.x && checkX < o.x + o.w && checkY > o.y && checkY < o.y + o.h);
+            if (blocked) {
+              desiredAngle += Math.PI / 2; // Steer around wall
+              moveX = Math.cos(desiredAngle);
+              moveY = Math.sin(desiredAngle);
             }
 
-            if (dist < 220 && this.attackCooldown <= 0) {
+            this.angle = Math.atan2(target.y - this.y, target.x - this.x);
+
+            if (dist > 55) {
+              this.x += moveX * (this.speed * 0.75);
+              this.y += moveY * (this.speed * 0.75);
+            }
+
+            if (dist < 200 && this.attackCooldown <= 0) {
               this.currentWeaponSlot = dist < 60 ? 'melee' : 'bow';
               this.attack(game);
             }
           }
         }
 
-        // Obstacle Collision Avoidance
+        // Obstacle Hard Collision
         game.obstacles.forEach(o => {
           if (this.x + this.radius > o.x && this.x - this.radius < o.x + o.w &&
               this.y + this.radius > o.y && this.y - this.radius < o.y + o.h) {
-            this.x = prevX;
-            this.y = prevY;
+            this.x = prevX; this.y = prevY;
           }
         });
 
@@ -1360,15 +1054,10 @@
 
         if (this.currentWeaponSlot === 'melee') {
           this.attackCooldown = 25;
-          this.swingAnimation = 1.0;
-
           game.entities.forEach(e => {
             if (e !== this && e.hp > 0) {
               let dist = Math.hypot(e.x - this.x, e.y - this.y);
-              let angleTo = Math.atan2(e.y - this.y, e.x - this.x);
-              let diff = Math.abs(this.angle - angleTo);
-
-              if (dist < 65 && diff < 1.2) {
+              if (dist < 65 && Math.abs(this.angle - Math.atan2(e.y - this.y, e.x - this.x)) < 1.2) {
                 let damage = this.melee.baseDmg * RARITIES[this.melee.rarity].statMult;
                 e.takeDamage(damage, game, this);
                 if (this.isPlayer) game.sessionMeleePts += Math.floor(damage);
@@ -1377,6 +1066,7 @@
           });
         } else {
           this.attackCooldown = 35;
+          // Normalized Bow Damage Calculation
           let damage = this.bow.baseDmg * RARITIES[this.bow.rarity].statMult;
           game.projectiles.push(new Arrow(this.x, this.y, this.angle, 14, damage, this));
         }
@@ -1391,48 +1081,29 @@
 
       render(ctx) {
         if (this.hp <= 0) return;
-
-        ctx.save();
-        ctx.translate(this.x, this.y);
-
-        // Body Circle with Skin Styling
+        ctx.save(); ctx.translate(this.x, this.y);
         ctx.fillStyle = this.faction === 'Steelheim' ? '#2b7fff' : this.faction === 'Arcadia' ? '#ffd700' : '#94a3b8';
-        ctx.beginPath();
-        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
 
-        // Visible Armor Outer Rim
         if (this.armor) {
           ctx.strokeStyle = this.armor.color || RARITIES[this.armor.rarity].color;
-          ctx.lineWidth = 5;
-          ctx.beginPath();
-          ctx.arc(0, 0, this.radius + 2, 0, Math.PI * 2);
-          ctx.stroke();
+          ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(0, 0, this.radius + 2, 0, Math.PI * 2); ctx.stroke();
         }
 
-        // Draw Custom Skin Graphics
         drawSkinDetails(ctx, this.skin, this.radius);
 
-        // Rotation & Weapon Render
         ctx.rotate(this.angle);
         if (this.currentWeaponSlot === 'melee') {
-          ctx.strokeStyle = RARITIES[this.melee.rarity].color;
-          ctx.lineWidth = 4;
+          ctx.strokeStyle = RARITIES[this.melee.rarity].color; ctx.lineWidth = 4;
           ctx.beginPath(); ctx.moveTo(15, 5); ctx.lineTo(45, 5); ctx.stroke();
         } else {
-          ctx.strokeStyle = RARITIES[this.bow.rarity].color;
-          ctx.lineWidth = 3;
+          ctx.strokeStyle = RARITIES[this.bow.rarity].color; ctx.lineWidth = 3;
           ctx.beginPath(); ctx.arc(20, 0, 15, -Math.PI / 2, Math.PI / 2); ctx.stroke();
         }
-
         ctx.restore();
 
-        // Name & HP
-        ctx.fillStyle = '#fff';
-        ctx.font = '12px sans-serif';
-        ctx.textAlign = 'center';
+        ctx.fillStyle = '#fff'; ctx.font = '12px sans-serif'; ctx.textAlign = 'center';
         ctx.fillText(this.name, this.x, this.y - 30);
-
         let hpPercent = Math.max(0, this.hp / this.maxHp);
         ctx.fillStyle = '#000'; ctx.fillRect(this.x - 20, this.y - 26, 40, 5);
         ctx.fillStyle = '#22c55e'; ctx.fillRect(this.x - 20, this.y - 26, 40 * hpPercent, 5);
@@ -1442,14 +1113,9 @@
     class Zombie {
       constructor(x, y, wave) {
         this.x = x; this.y = y; this.radius = 18;
-        this.speed = 2 + wave * 0.2;
-        this.maxHp = 40 + wave * 25;
-        this.hp = this.maxHp;
-        this.damage = 10 + wave * 5;
-        this.angle = 0;
-        this.attackCooldown = 0;
+        this.speed = 2 + wave * 0.15; this.maxHp = 40 + wave * 20; this.hp = this.maxHp;
+        this.damage = 10 + wave * 3; this.angle = 0; this.attackCooldown = 0;
       }
-
       update(game) {
         if (this.hp <= 0) return;
         let player = game.player;
@@ -1457,29 +1123,21 @@
           this.angle = Math.atan2(player.y - this.y, player.x - this.x);
           this.x += Math.cos(this.angle) * this.speed;
           this.y += Math.sin(this.angle) * this.speed;
-
           if (Math.hypot(player.x - this.x, player.y - this.y) < this.radius + player.radius) {
-            if (this.attackCooldown <= 0) {
-              player.takeDamage(this.damage, game, this);
-              this.attackCooldown = 40;
-            }
+            if (this.attackCooldown <= 0) { player.takeDamage(this.damage, game, this); this.attackCooldown = 40; }
           }
         }
         if (this.attackCooldown > 0) this.attackCooldown--;
       }
-
       takeDamage(amount, game, attacker) {
         this.hp -= amount;
         for (let i = 0; i < 4; i++) game.particles.push(new Particle(this.x, this.y, '#22c55e'));
         if (this.hp <= 0 && attacker && attacker.isPlayer) game.sessionGold += 15;
       }
-
       render(ctx) {
         if (this.hp <= 0) return;
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.fillStyle = '#15803d';
-        ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
+        ctx.save(); ctx.translate(this.x, this.y);
+        ctx.fillStyle = '#15803d'; ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
       }
     }
@@ -1487,22 +1145,15 @@
     class Arrow {
       constructor(x, y, angle, speed, damage, owner) {
         this.x = x; this.y = y;
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-        this.damage = damage;
-        this.owner = owner;
-        this.active = true;
+        this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+        this.damage = damage; this.owner = owner; this.active = true;
       }
-
       update(game) {
         this.x += this.vx; this.y += this.vy;
         if (this.x < 0 || this.x > game.canvas.width || this.y < 0 || this.y > game.canvas.height) this.active = false;
 
-        // Blocked by Obstacles
         game.obstacles.forEach(o => {
-          if (this.x > o.x && this.x < o.x + o.w && this.y > o.y && this.y < o.y + o.h) {
-            this.active = false;
-          }
+          if (this.x > o.x && this.x < o.x + o.w && this.y > o.y && this.y < o.y + o.h) this.active = false;
         });
 
         game.entities.forEach(e => {
@@ -1515,43 +1166,26 @@
           }
         });
       }
-
       render(ctx) {
-        ctx.save();
-        ctx.fillStyle = '#facc15';
-        ctx.fillRect(this.x, this.y, 4, 4);
-        ctx.restore();
+        ctx.save(); ctx.fillStyle = '#facc15'; ctx.fillRect(this.x, this.y, 4, 4); ctx.restore();
       }
     }
 
     class Particle {
       constructor(x, y, color) {
         this.x = x; this.y = y;
-        this.vx = (Math.random() - 0.5) * 6;
-        this.vy = (Math.random() - 0.5) * 6;
-        this.color = color;
-        this.life = 1.0;
-        this.active = true;
+        this.vx = (Math.random() - 0.5) * 6; this.vy = (Math.random() - 0.5) * 6;
+        this.color = color; this.life = 1.0; this.active = true;
       }
-
       update() {
-        this.x += this.vx; this.y += this.vy;
-        this.life -= 0.05;
+        this.x += this.vx; this.y += this.vy; this.life -= 0.05;
         if (this.life <= 0) this.active = false;
       }
-
       render(ctx) {
-        ctx.save();
-        ctx.globalAlpha = this.life;
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, 4, 4);
-        ctx.restore();
+        ctx.save(); ctx.globalAlpha = this.life; ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, 4, 4); ctx.restore();
       }
     }
 
-    /* ==========================================
-       INITIALIZATION
-       ========================================== */
     const game = new UltimateCrusadeGame();
     let selectedFaction = 'Steelheim';
 
@@ -1562,8 +1196,7 @@
       document.getElementById('btn-start-legacy').addEventListener('click', () => {
         document.getElementById('screen-title').classList.add('hidden');
         if (hasSave && playerSave.username) {
-          document.getElementById('screen-hub').classList.remove('hidden');
-          updateHubUI();
+          document.getElementById('screen-hub').classList.remove('hidden'); updateHubUI();
         } else {
           document.getElementById('screen-setup').classList.remove('hidden');
         }
@@ -1572,20 +1205,16 @@
       document.querySelectorAll('.faction-card').forEach(card => {
         card.addEventListener('click', () => {
           document.querySelectorAll('.faction-card').forEach(c => c.classList.remove('selected'));
-          card.classList.add('selected');
-          selectedFaction = card.dataset.faction;
+          card.classList.add('selected'); selectedFaction = card.dataset.faction;
         });
       });
 
       document.getElementById('btn-confirm-setup').addEventListener('click', () => {
         const username = document.getElementById('input-username').value.trim();
         if (!username) return alert("Please enter a username!");
-        playerSave.username = username;
-        playerSave.faction = selectedFaction;
-        saveGameData();
-        document.getElementById('screen-setup').classList.add('hidden');
-        document.getElementById('screen-hub').classList.remove('hidden');
-        updateHubUI();
+        playerSave.username = username; playerSave.faction = selectedFaction;
+        saveGameData(); document.getElementById('screen-setup').classList.add('hidden');
+        document.getElementById('screen-hub').classList.remove('hidden'); updateHubUI();
       });
 
       document.querySelectorAll('.tab-btn').forEach(btn => {
