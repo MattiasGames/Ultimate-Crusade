@@ -669,12 +669,12 @@
     ];
 
     const BOW_WEAPONS = [
-      { id: 'b_short_bow', name: 'Short Bow', type: 'bow', rarity: 'COMMON', baseDmg: 12, speed: 10, cost: 0 },
-      { id: 'b_recurve_bow', name: 'Recurve Bow', type: 'bow', rarity: 'UNCOMMON', baseDmg: 18, speed: 12, cost: 150 },
-      { id: 'b_longbow', name: 'Yew Longbow', type: 'bow', rarity: 'RARE', baseDmg: 26, speed: 14, cost: 400 },
-      { id: 'b_arcane_bow', name: 'Arcane Greatbow', type: 'bow', rarity: 'EPIC', baseDmg: 36, speed: 16, cost: 900 },
-      { id: 'b_phoenix_bow', name: 'Phoenix Bow', type: 'bow', rarity: 'LEGENDARY', baseDmg: 50, speed: 18, cost: 2000 },
-      { id: 'b_celestial_bow', name: 'Celestial Starbow', type: 'bow', rarity: 'MYTHIC', baseDmg: 70, speed: 20, cost: 5000 }
+      { id: 'b_short_bow', name: 'Hunting Shortbow', type: 'bow', rarity: 'COMMON', baseDmg: 14, speed: 11, cost: 0 },
+      { id: 'b_recurve_bow', name: 'Composite Recurve', type: 'bow', rarity: 'UNCOMMON', baseDmg: 20, speed: 13, cost: 150 },
+      { id: 'b_longbow', name: 'Yew War Longbow', type: 'bow', rarity: 'RARE', baseDmg: 28, speed: 15, cost: 400 },
+      { id: 'b_arcane_bow', name: 'Arcane Greatbow', type: 'bow', rarity: 'EPIC', baseDmg: 40, speed: 17, cost: 900 },
+      { id: 'b_phoenix_bow', name: 'Phoenix Firebow', type: 'bow', rarity: 'LEGENDARY', baseDmg: 56, speed: 19, cost: 2000 },
+      { id: 'b_celestial_bow', name: 'Celestial Starbow', type: 'bow', rarity: 'MYTHIC', baseDmg: 76, speed: 22, cost: 5000 }
     ];
 
     const ARMORS = [
@@ -706,8 +706,8 @@
       return false;
     }
 
-    /* HIGHLY DETAILED CUSTOM CANVAS ARTWORK FOR WEAPONS & GEAR */
-    function drawDetailedWeaponArt(ctx, itemId) {
+    /* HIGHLY DETAILED CUSTOM CANVAS ARTWORK FOR WEAPONS & BOWS */
+    function drawDetailedWeaponArt(ctx, itemId, drawProgress = 0) {
       ctx.save();
       ctx.translate(25, 25);
 
@@ -723,8 +723,8 @@
         ctx.fillStyle = '#0f172a'; ctx.fillRect(-2, 12, 4, 8);
       } else if (itemId === 'm_nordic_battleaxe') {
         ctx.rotate(-Math.PI / 4);
-        ctx.fillStyle = '#78350f'; ctx.fillRect(-2, -18, 4, 36); // Handle
-        ctx.fillStyle = '#94a3b8'; // Axe Head
+        ctx.fillStyle = '#78350f'; ctx.fillRect(-2, -18, 4, 36);
+        ctx.fillStyle = '#94a3b8';
         ctx.beginPath(); ctx.moveTo(2, -14); ctx.quadraticCurveTo(16, -18, 18, -2); ctx.quadraticCurveTo(8, -6, 2, -2); ctx.fill();
         ctx.beginPath(); ctx.moveTo(-2, -14); ctx.quadraticCurveTo(-16, -18, -18, -2); ctx.quadraticCurveTo(-8, -6, -2, -2); ctx.fill();
       } else if (itemId === 'm_runic_greatsword') {
@@ -743,15 +743,61 @@
         ctx.fillStyle = '#475569'; ctx.fillRect(-2, -10, 4, 28);
         ctx.fillStyle = '#ef4444'; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 12;
         ctx.fillRect(-14, -22, 28, 14);
-      } else if (itemId.startsWith('b_')) {
-        // BOW RENDERING
-        ctx.strokeStyle = itemId === 'b_celestial_bow' ? '#38bdf8' : itemId === 'b_phoenix_bow' ? '#f97316' : '#a16207';
-        ctx.lineWidth = 3.5;
-        ctx.beginPath(); ctx.arc(0, 0, 16, -Math.PI * 0.6, Math.PI * 0.6); ctx.stroke();
-        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(16 * Math.cos(-Math.PI*0.6), 16 * Math.sin(-Math.PI*0.6)); ctx.lineTo(16 * Math.cos(Math.PI*0.6), 16 * Math.sin(Math.PI*0.6)); ctx.stroke();
+      } 
+      /* EXTREMELY DETAILED CUSTOM BOW ART RENDERING */
+      else if (itemId === 'b_short_bow') {
+        ctx.strokeStyle = '#854d0e'; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.arc(0, 0, 18, -Math.PI * 0.55, Math.PI * 0.55); ctx.stroke();
+        // Riser
+        ctx.fillStyle = '#451a03'; ctx.fillRect(-3, -5, 6, 10);
+        // String Strain
+        ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1.2;
+        let pX = 18 * Math.cos(-Math.PI*0.55); let pY = 18 * Math.sin(-Math.PI*0.55);
+        let pullX = -drawProgress * 12;
+        ctx.beginPath(); ctx.moveTo(pX, pY); ctx.lineTo(pullX, 0); ctx.lineTo(pX, -pY); ctx.stroke();
+      } else if (itemId === 'b_recurve_bow') {
+        // Double Recurve Limbs
+        ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(10, -22); ctx.quadraticCurveTo(-4, -12, 2, 0); ctx.quadraticCurveTo(-4, 12, 10, 22);
+        ctx.stroke();
+        ctx.fillStyle = '#b45309'; ctx.fillRect(-2, -6, 5, 12); // Leather Grip
+        // Bow String
+        ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.5;
+        let pullX = -drawProgress * 14;
+        ctx.beginPath(); ctx.moveTo(10, -22); ctx.lineTo(pullX, 0); ctx.lineTo(10, 22); ctx.stroke();
+      } else if (itemId === 'b_longbow') {
+        ctx.strokeStyle = '#78350f'; ctx.lineWidth = 4.5;
+        ctx.beginPath(); ctx.arc(0, 0, 24, -Math.PI * 0.5, Math.PI * 0.5); ctx.stroke();
+        ctx.fillStyle = '#f8fafc'; ctx.fillRect(-2, -22, 4, 3); ctx.fillRect(-2, 19, 4, 3); // Horn Tips
+        ctx.strokeStyle = '#facc15'; ctx.lineWidth = 1.2;
+        let pullX = -drawProgress * 16;
+        ctx.beginPath(); ctx.moveTo(0, -22); ctx.lineTo(pullX, 0); ctx.lineTo(0, 22); ctx.stroke();
+      } else if (itemId === 'b_arcane_bow') {
+        ctx.shadowColor = '#a855f7'; ctx.shadowBlur = 10;
+        ctx.strokeStyle = '#c084fc'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(0, 0, 20, -Math.PI * 0.6, Math.PI * 0.6); ctx.stroke();
+        ctx.fillStyle = '#581c87'; ctx.fillRect(-4, -8, 8, 16);
+        ctx.strokeStyle = '#f0abfc'; ctx.lineWidth = 2;
+        let pullX = -drawProgress * 18;
+        ctx.beginPath(); ctx.moveTo(20*Math.cos(-Math.PI*0.6), 20*Math.sin(-Math.PI*0.6)); ctx.lineTo(pullX, 0); ctx.lineTo(20*Math.cos(Math.PI*0.6), 20*Math.sin(Math.PI*0.6)); ctx.stroke();
+      } else if (itemId === 'b_phoenix_bow') {
+        ctx.shadowColor = '#f97316'; ctx.shadowBlur = 14;
+        ctx.strokeStyle = '#ea580c'; ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.moveTo(12, -24); ctx.lineTo(-2, -10); ctx.lineTo(2, 0); ctx.lineTo(-2, 10); ctx.lineTo(12, 24); ctx.stroke();
+        ctx.fillStyle = '#facc15'; ctx.fillRect(-3, -5, 6, 10);
+        ctx.strokeStyle = '#fdba74'; ctx.lineWidth = 2;
+        let pullX = -drawProgress * 20;
+        ctx.beginPath(); ctx.moveTo(12, -24); ctx.lineTo(pullX, 0); ctx.lineTo(12, 24); ctx.stroke();
+      } else if (itemId === 'b_celestial_bow') {
+        ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 16;
+        ctx.strokeStyle = '#0284c7'; ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(0, 0, 22, -Math.PI * 0.65, Math.PI * 0.65); ctx.stroke();
+        ctx.fillStyle = '#e0f2fe'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI * 2); ctx.fill(); // Cosmic Core
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2.2;
+        let pullX = -drawProgress * 22;
+        ctx.beginPath(); ctx.moveTo(22*Math.cos(-Math.PI*0.65), 22*Math.sin(-Math.PI*0.65)); ctx.lineTo(pullX, 0); ctx.lineTo(22*Math.cos(Math.PI*0.65), 22*Math.sin(Math.PI*0.65)); ctx.stroke();
       } else {
-        // ARMOR RENDERING
         ctx.fillStyle = itemId === 'a_godly' ? '#ef4444' : itemId === 'a_dragon' ? '#eab308' : '#64748b';
         ctx.fillRect(-12, -14, 24, 28);
         ctx.fillStyle = '#0f172a'; ctx.fillRect(-8, -10, 16, 20);
@@ -836,7 +882,7 @@
         const div = document.createElement('div');
         div.className = `shop-item ${item.rarity.toLowerCase()}`;
         const previewCanvas = document.createElement('canvas'); previewCanvas.className = 'item-preview'; previewCanvas.width = 50; previewCanvas.height = 50;
-        drawDetailedWeaponArt(previewCanvas.getContext('2d'), item.id);
+        drawDetailedWeaponArt(previewCanvas.getContext('2d'), item.id, 0.5);
 
         let btnHtml = isEquipped ? `<span style="color:var(--primary);">Equipped</span>` :
           isBought ? `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="equipItem('${item.id}')">Equip</button>` :
@@ -896,7 +942,6 @@
 
     function upgradeSkill(key, ptType, cost) { if (playerSave[ptType] >= cost) { playerSave[ptType] -= cost; playerSave.upgrades[key]++; saveGameData(); updateHubUI(); } }
 
-    /* SAPPHIRE TOP 1000 BOT NAMES GENERATOR */
     const TOP_SAPPHIRE_BOTS = [
       'Aurelius the Sunbreaker', 'Valerius Shadowbane', 'Ignis Bloodbound', 'Lysandra Steelweaver',
       'Kaelen Nightfall', 'Zephyrus Frostbite', 'Morgath Voidwalker', 'Titus Ironclad', 'Soren Flameheart'
@@ -1002,6 +1047,8 @@
     }
 
     /* CHARACTER ENTITY CLASS */
+    const PLAYSTYLE_ARCHETYPES = ['berserker', 'marksman', 'tactician', 'flanker'];
+
     class Entity {
       constructor(x, y, isCPU = false, rankPts = 900) {
         this.x = x; this.y = y;
@@ -1013,8 +1060,17 @@
         this.activeWeaponSlot = 'melee';
         this.attackCooldown = 0;
         this.swingAnim = 0;
+        this.bowDrawAnim = 0;
         this.dashAnim = 0;
+        this.walkCycle = 0;
         this.historyTrail = [];
+
+        // Distinct Human CPU Playstyle Profiles
+        if (isCPU) {
+          this.playstyle = PLAYSTYLE_ARCHETYPES[Math.floor(Math.random() * PLAYSTYLE_ARCHETYPES.length)];
+        } else {
+          this.playstyle = 'player';
+        }
 
         this.cpuState = 'patrol';
         this.cpuStrafingDir = Math.random() < 0.5 ? 1 : -1;
@@ -1043,8 +1099,7 @@
           this.bowSpeed = b.speed;
           this.speed = 3.8;
         } else {
-          // CPU scaling based on Rank Division
-          let rankIdx = getRankInfo(this.rankPts).index; // 0 to 20
+          let rankIdx = getRankInfo(this.rankPts).index;
           let gearTierIndex = Math.min(5, Math.floor(rankIdx / 3.5));
 
           let m = MELEE_WEAPONS[gearTierIndex];
@@ -1059,7 +1114,6 @@
           this.faction = ['Steelheim', 'Arcadia', 'Smithsten'][Math.floor(Math.random() * 3)];
           this.skin = SKINS[Math.min(SKINS.length - 1, gearTierIndex)].id;
 
-          // Enemy Stats scale with Rank
           this.maxHp = 80 + a.hpBonus + (rankIdx * 10);
           this.hp = this.maxHp;
           this.meleeDmg = Math.round(m.baseDmg * RARITIES[m.rarity].statMult) + Math.floor(rankIdx * 1.5);
@@ -1073,10 +1127,13 @@
         if (!this.isAlive || game.countdown > 0) return;
 
         if (this.attackCooldown > 0) this.attackCooldown--;
-        if (this.swingAnim > 0) this.swingAnim -= 0.1;
+        if (this.swingAnim > 0) this.swingAnim -= 0.12;
+        if (this.bowDrawAnim > 0) this.bowDrawAnim -= 0.08;
         if (this.dashAnim > 0) this.dashAnim -= 0.05;
 
-        if (Math.hypot(this.vx || 0, this.vy || 0) > 0.5) {
+        let curSpeed = Math.hypot(this.vx || 0, this.vy || 0);
+        if (curSpeed > 0.5) {
+          this.walkCycle += 0.2;
           this.historyTrail.push({ x: this.x, y: this.y, angle: this.angle });
           if (this.historyTrail.length > 5) this.historyTrail.shift();
         } else {
@@ -1104,46 +1161,77 @@
         this.angle = Math.atan2(game.mouse.y - this.y, game.mouse.x - this.x);
       }
 
+      /* ENHANCED DYNAMIC HUMAN-LIKE CPU BEHAVIOR */
       handleCPUBehavior(game) {
         this.cpuStateTimer--; this.cpuDodgeTimer--;
 
         let targets = game.entities.filter(e => e !== this && e.isAlive);
         if (targets.length === 0) return;
 
-        targets.sort((a, b) => Math.hypot(a.x - this.x, a.y - this.y) - Math.hypot(b.x - this.x, b.y - this.y));
+        // Find targets based on playstyle (Tacticians focus lowest HP, Berserkers closest)
+        if (this.playstyle === 'tactician') {
+          targets.sort((a, b) => a.hp - b.hp);
+        } else {
+          targets.sort((a, b) => Math.hypot(a.x - this.x, a.y - this.y) - Math.hypot(b.x - this.x, b.y - this.y));
+        }
         let closest = targets[0];
         let dist = Math.hypot(closest.x - this.x, closest.y - this.y);
 
+        // State Machine timer logic based on Playstyle
         if (this.cpuStateTimer <= 0) {
-          this.cpuStateTimer = 30 + Math.floor(Math.random() * 40);
-          this.cpuState = dist < 120 ? 'melee_attack' : dist < 320 ? 'bow_attack' : 'chase';
+          this.cpuStateTimer = 25 + Math.floor(Math.random() * 35);
           this.cpuStrafingDir = Math.random() < 0.5 ? 1 : -1;
+
+          if (this.playstyle === 'berserker') {
+            this.cpuState = dist < 220 ? 'melee_rush' : 'chase';
+          } else if (this.playstyle === 'marksman') {
+            this.cpuState = dist < 140 ? 'backpedal' : 'bow_snipe';
+          } else if (this.playstyle === 'flanker') {
+            this.cpuState = Math.random() < 0.6 ? 'flank_strafe' : 'melee_rush';
+          } else { // Tactician
+            this.cpuState = dist < 90 ? 'melee_rush' : dist < 300 ? 'tactical_pacing' : 'bow_snipe';
+          }
         }
 
-        if (dist < 100) this.activeWeaponSlot = 'melee';
-        else if (dist > 160) this.activeWeaponSlot = 'bow';
+        // Dynamic Weapon Selection per Playstyle & Proximity
+        if (this.playstyle === 'berserker') {
+          if (this.activeWeaponSlot !== 'melee') this.activeWeaponSlot = 'melee';
+        } else if (this.playstyle === 'marksman') {
+          if (dist > 80 && this.activeWeaponSlot !== 'bow') this.activeWeaponSlot = 'bow';
+          else if (dist <= 80 && this.activeWeaponSlot !== 'melee') this.activeWeaponSlot = 'melee';
+        } else {
+          if (dist < 90 && this.activeWeaponSlot !== 'melee') this.activeWeaponSlot = 'melee';
+          else if (dist > 150 && this.activeWeaponSlot !== 'bow') this.activeWeaponSlot = 'bow';
+        }
 
         let targetAngle = Math.atan2(closest.y - this.y, closest.x - this.x);
         this.angle = targetAngle;
 
         let moveX = 0, moveY = 0;
-        let incomingArrow = game.projectiles.find(p => p.owner !== this && Math.hypot(p.x - this.x, p.y - this.y) < 120);
 
+        // Reactive Dodging AI against incoming arrows
+        let incomingArrow = game.projectiles.find(p => p.owner !== this && Math.hypot(p.x - this.x, p.y - this.y) < 130);
         if (incomingArrow && this.cpuDodgeTimer <= 0) {
-          this.cpuDodgeTimer = 25;
-          let perpAngle = Math.atan2(incomingArrow.vy, incomingArrow.vx) + Math.PI / 2;
-          moveX = Math.cos(perpAngle) * this.speed * 1.4;
-          moveY = Math.sin(perpAngle) * this.speed * 1.4;
+          this.cpuDodgeTimer = 20;
+          let perpAngle = Math.atan2(incomingArrow.vy, incomingArrow.vx) + (Math.PI / 2) * this.cpuStrafingDir;
+          moveX = Math.cos(perpAngle) * this.speed * 1.5;
+          moveY = Math.sin(perpAngle) * this.speed * 1.5;
           this.dashAnim = 1.0;
-        } else if (this.cpuState === 'chase') {
-          moveX = Math.cos(targetAngle) * this.speed;
-          moveY = Math.sin(targetAngle) * this.speed;
-        } else if (this.cpuState === 'melee_attack') {
-          moveX = Math.cos(targetAngle) * this.speed * 1.1;
-          moveY = Math.sin(targetAngle) * this.speed * 1.1;
-          if (dist < 45) this.attack(game);
-        } else if (this.cpuState === 'bow_attack') {
-          if (dist < 150) { moveX = -Math.cos(targetAngle) * this.speed; moveY = -Math.sin(targetAngle) * this.speed; }
+        } else if (this.cpuState === 'chase' || this.cpuState === 'melee_rush') {
+          moveX = Math.cos(targetAngle) * this.speed * 1.15;
+          moveY = Math.sin(targetAngle) * this.speed * 1.15;
+          if (dist < 50) this.attack(game);
+        } else if (this.cpuState === 'backpedal') {
+          moveX = -Math.cos(targetAngle) * this.speed * 1.1;
+          moveY = -Math.sin(targetAngle) * this.speed * 1.1;
+          if (this.activeWeaponSlot === 'bow') this.attack(game);
+        } else if (this.cpuState === 'flank_strafe' || this.cpuState === 'tactical_pacing') {
+          let strafeAngle = targetAngle + (Math.PI / 2.2) * this.cpuStrafingDir;
+          moveX = Math.cos(strafeAngle) * this.speed;
+          moveY = Math.sin(strafeAngle) * this.speed;
+          if (dist < 260) this.attack(game);
+        } else if (this.cpuState === 'bow_snipe') {
+          if (dist < 180) { moveX = -Math.cos(targetAngle) * this.speed; moveY = -Math.sin(targetAngle) * this.speed; }
           this.attack(game);
         }
 
@@ -1177,7 +1265,7 @@
             }
           }
         } else {
-          this.attackCooldown = 32;
+          this.attackCooldown = 32; this.bowDrawAnim = 1.0;
           let vx = Math.cos(this.angle) * this.bowSpeed;
           let vy = Math.sin(this.angle) * this.bowSpeed;
           game.projectiles.push(new Projectile(this.x + Math.cos(this.angle) * 20, this.y + Math.sin(this.angle) * 20, vx, vy, this.bowDmg, this));
@@ -1227,6 +1315,11 @@
 
         ctx.save();
         ctx.translate(this.x, this.y);
+
+        // Walking sway animation
+        let bodyBob = Math.sin(this.walkCycle) * 2;
+        ctx.translate(0, bodyBob);
+
         ctx.rotate(this.angle);
 
         // Body
@@ -1242,12 +1335,12 @@
           let swingOffset = this.swingAnim > 0 ? (1.0 - this.swingAnim) * Math.PI * 0.8 - Math.PI * 0.4 : 0;
           ctx.rotate(swingOffset);
           ctx.translate(15, 0);
-          drawDetailedWeaponArt(ctx, this.equippedMelee);
+          drawDetailedWeaponArt(ctx, this.equippedMelee, 0);
           ctx.restore();
         } else {
           ctx.save();
           ctx.translate(15, 0);
-          drawDetailedWeaponArt(ctx, this.equippedBow);
+          drawDetailedWeaponArt(ctx, this.equippedBow, this.bowDrawAnim);
           ctx.restore();
         }
 
@@ -1348,7 +1441,6 @@
         if (mode === 'zombies') {
           this.spawnZombieWave();
         } else {
-          // Spawn CPU Champions scaled to Rank in Ranked mode
           for (let i = 0; i < 3; i++) {
             let cpuRankPts = mode === 'ranked' ? playerSave.rankPts : 900;
             let spawnX = this.canvas.width - 150 + (Math.random() * 60 - 30);
@@ -1437,7 +1529,7 @@
         let rankPtsChange = 0;
         if (this.mode === 'ranked') {
           rankPtsChange = victory ? 45 : -30;
-          playerSave.rankPts = Math.max(0, playerSave.rankPts + rankPtsChange); // Demotions down to Plastic 3
+          playerSave.rankPts = Math.max(0, playerSave.rankPts + rankPtsChange);
         }
 
         if (victory) {
@@ -1546,7 +1638,7 @@
 
         playerSave.username = nameInput;
         playerSave.faction = selectedFaction;
-        playerSave.rankPts = 900; // Starts at Bronze 3
+        playerSave.rankPts = 900;
         saveGameData();
 
         document.getElementById('screen-setup').classList.add('hidden');
