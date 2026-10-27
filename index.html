@@ -367,6 +367,34 @@
       box-shadow: 0 0 10px var(--primary);
     }
 
+    /* Pre-Match Countdown Overlay */
+    #countdown-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(0,0,0,0.4);
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    #countdown-text {
+      font-size: 6rem;
+      font-weight: 900;
+      color: var(--primary);
+      text-shadow: 0 0 30px rgba(212, 175, 55, 0.8), 0 0 60px #000;
+      animation: pulse 0.8s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); }
+      100% { transform: scale(1.1); }
+    }
+
     #post-game-overlay {
       position: absolute;
       top: 0;
@@ -450,7 +478,7 @@
         <div class="stat-item">⚔️ Melee Pts: <span id="val-pts-melee" style="color:#60a5fa;">0</span></div>
         <div class="stat-item">🏹 Bow Pts: <span id="val-pts-bow" style="color:#facc15;">0</span></div>
         <div class="stat-item">🛡️ Armor Pts: <span id="val-pts-armor" style="color:#94a3b8;">0</span></div>
-        <div class="stat-item">🏆 Rank: <span id="val-rank" style="color:#f43f5e;">Unranked (1000 ELO)</span></div>
+        <div class="stat-item">🏆 Rank: <span id="val-rank" style="color:#f43f5e;">Bronze 3</span></div>
       </div>
     </div>
 
@@ -466,12 +494,12 @@
       <div class="modes-grid">
         <div class="mode-card">
           <h3>Casual Arena</h3>
-          <p>4-Player Free-for-All across dynamic maps with smart obstacle CPU AI.</p>
+          <p>4-Player Free-for-All practice match against dynamic CPU champions.</p>
           <button class="btn" onclick="game.startMatch('casual')">Play Casual</button>
         </div>
         <div class="mode-card">
           <h3>Ranked Crusade</h3>
-          <p>Competitive FFA. Climb the global ladder up to Top #1!</p>
+          <p>Competitive Ranked FFA. Climb from Plastic to Sapphire Tier! Enemies scale with your Rank.</p>
           <button class="btn" onclick="game.startMatch('ranked')">Play Ranked</button>
         </div>
         <div class="mode-card">
@@ -507,14 +535,15 @@
 
     <!-- TAB: LEADERBOARD -->
     <div id="tab-leaderboard" class="tab-content hidden">
-      <h3>Global Crusade Rankings (#1 - #1000)</h3>
+      <h3>Global Crusade Sapphire Leaderboard (Top 1000)</h3>
       <table style="width: 100%; border-collapse: collapse; margin-top: 15px; text-align: left;">
         <thead>
           <tr style="border-bottom: 2px solid var(--border-color); color: var(--primary);">
             <th style="padding: 10px;">Rank</th>
             <th>Champion</th>
             <th>Faction</th>
-            <th>ELO Rating</th>
+            <th>Tier Division</th>
+            <th>Rank Points</th>
           </tr>
         </thead>
         <tbody id="leaderboard-body"></tbody>
@@ -525,6 +554,12 @@
   <!-- GAME SCREEN -->
   <div id="game-container" class="hidden">
     <canvas id="gameCanvas"></canvas>
+    
+    <!-- Countdown Overlay -->
+    <div id="countdown-overlay" class="hidden">
+      <div id="countdown-text">3</div>
+    </div>
+
     <div id="game-hud">
       <div class="hud-top">
         <div class="player-stats-hud">
@@ -558,7 +593,7 @@
         <div style="display:flex; justify-content:space-around; margin: 20px 0; background:rgba(0,0,0,0.4); padding:15px; border-radius:6px;">
           <div>Gold Earned: <strong id="post-gold" style="color:#ffd700;">+0</strong></div>
           <div>Points Earned: <strong id="post-pts" style="color:#60a5fa;">+0</strong></div>
-          <div>ELO Change: <strong id="post-elo" style="color:#f43f5e;">0</strong></div>
+          <div>Rank Change: <strong id="post-elo" style="color:#f43f5e;">0</strong></div>
         </div>
         <button class="btn" onclick="game.returnToHub()">Return to Hub</button>
       </div>
@@ -574,6 +609,40 @@
       LEGENDARY: { name: 'Legendary', color: '#eab308', statMult: 2.1 },
       MYTHIC: { name: 'Mythic', color: '#ef4444', statMult: 2.6 }
     };
+
+    /* TIERED RANKING SYSTEM DEFINITIONS */
+    const RANK_TIERS = [
+      { name: 'Plastic 3', minPts: 0, color: '#94a3b8' },
+      { name: 'Plastic 2', minPts: 100, color: '#94a3b8' },
+      { name: 'Plastic 1', minPts: 200, color: '#94a3b8' },
+      { name: 'Tinfoil 3', minPts: 300, color: '#cbd5e1' },
+      { name: 'Tinfoil 2', minPts: 400, color: '#cbd5e1' },
+      { name: 'Tinfoil 1', minPts: 500, color: '#cbd5e1' },
+      { name: 'Cobblestone 3', minPts: 600, color: '#64748b' },
+      { name: 'Cobblestone 2', minPts: 700, color: '#64748b' },
+      { name: 'Cobblestone 1', minPts: 800, color: '#64748b' },
+      { name: 'Bronze 3', minPts: 900, color: '#b45309' }, // STARTING RANK
+      { name: 'Bronze 2', minPts: 1050, color: '#b45309' },
+      { name: 'Bronze 1', minPts: 1200, color: '#b45309' },
+      { name: 'Silver 3', minPts: 1350, color: '#e2e8f0' },
+      { name: 'Silver 2', minPts: 1500, color: '#e2e8f0' },
+      { name: 'Silver 1', minPts: 1650, color: '#e2e8f0' },
+      { name: 'Gold 3', minPts: 1800, color: '#eab308' },
+      { name: 'Gold 2', minPts: 2000, color: '#eab308' },
+      { name: 'Gold 1', minPts: 2200, color: '#eab308' },
+      { name: 'Platinum', minPts: 2400, color: '#38bdf8' },
+      { name: 'Ruby', minPts: 2700, color: '#f43f5e' },
+      { name: 'Sapphire', minPts: 3000, color: '#2563eb' } // Top 1000
+    ];
+
+    function getRankInfo(rankPts) {
+      for (let i = RANK_TIERS.length - 1; i >= 0; i--) {
+        if (rankPts >= RANK_TIERS[i].minPts) {
+          return { tier: RANK_TIERS[i], index: i };
+        }
+      }
+      return { tier: RANK_TIERS[0], index: 0 };
+    }
 
     const MAP_ENVIRONMENTS = [
       { id: 'tundra', name: 'Nordic Tundra', bg: '#0f172a', obstacleColor: '#0284c7', border: '#38bdf8' },
@@ -624,7 +693,7 @@
       ptsMelee: 0,
       ptsBow: 0,
       ptsArmor: 0,
-      elo: 1000,
+      rankPts: 900, // Starts at Bronze 3
       inventory: ['m_iron_sword', 'b_short_bow', 'a_padded', 'skin_default'],
       equipped: { melee: 'm_iron_sword', bow: 'b_short_bow', armor: 'a_padded', skin: 'skin_default' },
       upgrades: { meleeLvl: 0, bowLvl: 0, armorLvl: 0 }
@@ -637,12 +706,63 @@
       return false;
     }
 
+    /* HIGHLY DETAILED CUSTOM CANVAS ARTWORK FOR WEAPONS & GEAR */
+    function drawDetailedWeaponArt(ctx, itemId) {
+      ctx.save();
+      ctx.translate(25, 25);
+
+      if (itemId === 'm_iron_sword') {
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillStyle = '#64748b'; ctx.fillRect(-2, -18, 4, 26);
+        ctx.fillStyle = '#475569'; ctx.fillRect(-6, 8, 12, 3);
+        ctx.fillStyle = '#b45309'; ctx.fillRect(-1.5, 11, 3, 7);
+      } else if (itemId === 'm_steel_broadsword') {
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillStyle = '#cbd5e1'; ctx.fillRect(-3, -20, 6, 28);
+        ctx.fillStyle = '#38bdf8'; ctx.fillRect(-8, 8, 16, 4);
+        ctx.fillStyle = '#0f172a'; ctx.fillRect(-2, 12, 4, 8);
+      } else if (itemId === 'm_nordic_battleaxe') {
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillStyle = '#78350f'; ctx.fillRect(-2, -18, 4, 36); // Handle
+        ctx.fillStyle = '#94a3b8'; // Axe Head
+        ctx.beginPath(); ctx.moveTo(2, -14); ctx.quadraticCurveTo(16, -18, 18, -2); ctx.quadraticCurveTo(8, -6, 2, -2); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(-2, -14); ctx.quadraticCurveTo(-16, -18, -18, -2); ctx.quadraticCurveTo(-8, -6, -2, -2); ctx.fill();
+      } else if (itemId === 'm_runic_greatsword') {
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillStyle = '#38bdf8'; ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 8;
+        ctx.fillRect(-4, -22, 8, 30);
+        ctx.fillStyle = '#a855f7'; ctx.fillRect(-10, 8, 20, 4);
+        ctx.fillStyle = '#1e1b4b'; ctx.fillRect(-2.5, 12, 5, 10);
+      } else if (itemId === 'm_valkyrie_blade') {
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillStyle = '#facc15'; ctx.shadowColor = '#eab308'; ctx.shadowBlur = 10;
+        ctx.beginPath(); ctx.moveTo(0, -24); ctx.lineTo(6, 6); ctx.lineTo(-6, 6); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(-8, 6, 16, 3);
+      } else if (itemId === 'm_mjolnir_hammer') {
+        ctx.rotate(-Math.PI / 4);
+        ctx.fillStyle = '#475569'; ctx.fillRect(-2, -10, 4, 28);
+        ctx.fillStyle = '#ef4444'; ctx.shadowColor = '#ef4444'; ctx.shadowBlur = 12;
+        ctx.fillRect(-14, -22, 28, 14);
+      } else if (itemId.startsWith('b_')) {
+        // BOW RENDERING
+        ctx.strokeStyle = itemId === 'b_celestial_bow' ? '#38bdf8' : itemId === 'b_phoenix_bow' ? '#f97316' : '#a16207';
+        ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.arc(0, 0, 16, -Math.PI * 0.6, Math.PI * 0.6); ctx.stroke();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(16 * Math.cos(-Math.PI*0.6), 16 * Math.sin(-Math.PI*0.6)); ctx.lineTo(16 * Math.cos(Math.PI*0.6), 16 * Math.sin(Math.PI*0.6)); ctx.stroke();
+      } else {
+        // ARMOR RENDERING
+        ctx.fillStyle = itemId === 'a_godly' ? '#ef4444' : itemId === 'a_dragon' ? '#eab308' : '#64748b';
+        ctx.fillRect(-12, -14, 24, 28);
+        ctx.fillStyle = '#0f172a'; ctx.fillRect(-8, -10, 16, 20);
+      }
+      ctx.restore();
+    }
+
     function drawNordicSymbol(ctx, x, y, size, color, faction) {
       ctx.save();
       ctx.translate(x, y);
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
       if (faction === 'Steelheim') {
         ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(size, size); ctx.lineTo(-size, size); ctx.closePath(); ctx.stroke();
       } else if (faction === 'Arcadia') {
@@ -678,29 +798,11 @@
       ['Steelheim', 'Arcadia', 'Smithsten'].forEach(f => {
         const c = document.getElementById(`icon-${f.toLowerCase()}`);
         if (c) {
-          const ctx = c.getContext('2d');
-          ctx.clearRect(0, 0, 50, 50);
+          const ctx = c.getContext('2d'); ctx.clearRect(0, 0, 50, 50);
           let col = f === 'Steelheim' ? '#2b7fff' : f === 'Arcadia' ? '#ffd700' : '#94a3b8';
           drawNordicSymbol(ctx, 25, 25, 16, col, f);
         }
       });
-    }
-
-    function drawItemPreview(canvas, item) {
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.save();
-      if (item.type === 'melee') {
-        ctx.translate(25, 25); ctx.rotate(-Math.PI / 4);
-        ctx.strokeStyle = RARITIES[item.rarity].color; ctx.lineWidth = 4;
-        ctx.beginPath(); ctx.moveTo(0, 15); ctx.lineTo(0, -18); ctx.stroke();
-      } else if (item.type === 'bow') {
-        ctx.translate(25, 25); ctx.strokeStyle = RARITIES[item.rarity].color; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(0, 0, 16, -Math.PI / 2, Math.PI / 2); ctx.stroke();
-      } else {
-        ctx.fillStyle = item.color || RARITIES[item.rarity].color; ctx.fillRect(13, 11, 24, 28);
-      }
-      ctx.restore();
     }
 
     function updateHubUI() {
@@ -711,14 +813,13 @@
       document.getElementById('val-pts-bow').innerText = playerSave.ptsBow;
       document.getElementById('val-pts-armor').innerText = playerSave.ptsArmor;
 
-      let globalRank = Math.max(1, Math.floor(1001 - (playerSave.elo - 800) / 1.5));
-      if (globalRank > 1000) globalRank = '1000+';
-      document.getElementById('val-rank').innerText = `#${globalRank} (${playerSave.elo} ELO)`;
+      let rInfo = getRankInfo(playerSave.rankPts);
+      document.getElementById('val-rank').innerText = `${rInfo.tier.name} (${playerSave.rankPts} Pts)`;
+      document.getElementById('val-rank').style.color = rInfo.tier.color;
 
       const fc = document.getElementById('hub-faction-icon');
       if (fc) {
-        const ctx = fc.getContext('2d');
-        ctx.clearRect(0, 0, 40, 40);
+        const ctx = fc.getContext('2d'); ctx.clearRect(0, 0, 40, 40);
         let col = playerSave.faction === 'Steelheim' ? '#2b7fff' : playerSave.faction === 'Arcadia' ? '#ffd700' : '#94a3b8';
         drawNordicSymbol(ctx, 20, 20, 14, col, playerSave.faction);
       }
@@ -735,7 +836,7 @@
         const div = document.createElement('div');
         div.className = `shop-item ${item.rarity.toLowerCase()}`;
         const previewCanvas = document.createElement('canvas'); previewCanvas.className = 'item-preview'; previewCanvas.width = 50; previewCanvas.height = 50;
-        drawItemPreview(previewCanvas, item);
+        drawDetailedWeaponArt(previewCanvas.getContext('2d'), item.id);
 
         let btnHtml = isEquipped ? `<span style="color:var(--primary);">Equipped</span>` :
           isBought ? `<button class="btn" style="padding:4px 10px; font-size:0.8rem;" onclick="equipItem('${item.id}')">Equip</button>` :
@@ -795,21 +896,29 @@
 
     function upgradeSkill(key, ptType, cost) { if (playerSave[ptType] >= cost) { playerSave[ptType] -= cost; playerSave.upgrades[key]++; saveGameData(); updateHubUI(); } }
 
+    /* SAPPHIRE TOP 1000 BOT NAMES GENERATOR */
+    const TOP_SAPPHIRE_BOTS = [
+      'Aurelius the Sunbreaker', 'Valerius Shadowbane', 'Ignis Bloodbound', 'Lysandra Steelweaver',
+      'Kaelen Nightfall', 'Zephyrus Frostbite', 'Morgath Voidwalker', 'Titus Ironclad', 'Soren Flameheart'
+    ];
+
     function renderLeaderboard() {
       const tbody = document.getElementById('leaderboard-body'); tbody.innerHTML = '';
-      let myRank = Math.max(1, Math.floor(1001 - (playerSave.elo - 800) / 1.5));
-      for (let i = 1; i <= 8; i++) {
+      let rInfo = getRankInfo(playerSave.rankPts);
+
+      for (let i = 1; i <= 10; i++) {
         let tr = document.createElement('tr'); tr.style.borderBottom = '1px solid #2d3748';
-        if (i === myRank) {
-          tr.style.color = 'var(--primary)'; tr.innerHTML = `<td style="padding:8px;">#${i}</td><td>${playerSave.username} (YOU)</td><td>${playerSave.faction}</td><td>${playerSave.elo}</td>`;
+        if (i === 1 && rInfo.tier.name === 'Sapphire') {
+          tr.style.color = 'var(--primary)'; tr.innerHTML = `<td style="padding:8px;">#1</td><td>${playerSave.username} (YOU)</td><td>${playerSave.faction}</td><td>Sapphire</td><td>${playerSave.rankPts}</td>`;
         } else {
-          tr.innerHTML = `<td style="padding:8px;">#${i}</td><td>Crusader_${1000 - i * 3}</td><td>Steelheim</td><td>${2500 - (i * 120)}</td>`;
+          let botName = TOP_SAPPHIRE_BOTS[(i - 1) % TOP_SAPPHIRE_BOTS.length];
+          tr.innerHTML = `<td style="padding:8px;">#${i}</td><td>${botName}</td><td>Steelheim</td><td>Sapphire Tier</td><td>${3500 - (i * 45)}</td>`;
         }
         tbody.appendChild(tr);
       }
     }
 
-    /* PARTICLES & VISUAL ANIMATIONS */
+    /* PARTICLES CLASS */
     class Particle {
       constructor(x, y, vx, vy, color, life, size = 3, type = 'spark') {
         this.x = x; this.y = y; this.vx = vx; this.vy = vy;
@@ -839,12 +948,11 @@
 
     /* PROJECTILE CLASS */
     class Projectile {
-      constructor(x, y, vx, vy, damage, owner, color = '#facc15', isArcane = false) {
+      constructor(x, y, vx, vy, damage, owner, color = '#facc15') {
         this.x = x; this.y = y; this.vx = vx; this.vy = vy;
         this.damage = damage; this.owner = owner;
-        this.radius = isArcane ? 6 : 4; this.active = true;
-        this.color = color; this.isArcane = isArcane;
-        this.trail = [];
+        this.radius = 4; this.active = true;
+        this.color = color; this.trail = [];
       }
       update(game) {
         this.trail.push({ x: this.x, y: this.y });
@@ -852,30 +960,23 @@
 
         this.x += this.vx; this.y += this.vy;
 
-        // Map Bounds
         if (this.x < 0 || this.x > game.canvas.width || this.y < 0 || this.y > game.canvas.height) {
           this.active = false; return;
         }
 
-        // Obstacles collision
         for (let obs of game.obstacles) {
           if (this.x > obs.x && this.x < obs.x + obs.w && this.y > obs.y && this.y < obs.y + obs.h) {
-            this.active = false;
-            for (let i = 0; i < 6; i++) {
-              game.particles.push(new Particle(this.x, this.y, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 4, '#fbbf24', 15, 3));
-            }
-            return;
+            this.active = false; return;
           }
         }
 
-        // Hit entities
         for (let entity of game.entities) {
           if (entity !== this.owner && entity.isAlive) {
             let dist = Math.hypot(this.x - entity.x, this.y - entity.y);
             if (dist < entity.radius + this.radius) {
               entity.takeDamage(this.damage, this.owner, game);
               this.active = false;
-              for (let i = 0; i < 10; i++) {
+              for (let i = 0; i < 8; i++) {
                 game.particles.push(new Particle(this.x, this.y, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, '#ef4444', 20, 4, 'slash'));
               }
               break;
@@ -885,47 +986,37 @@
       }
       draw(ctx) {
         ctx.save();
-        // Draw projectile trail
-        ctx.beginPath();
-        for (let i = 0; i < this.trail.length; i++) {
-          let pt = this.trail[i];
-          ctx.lineTo(pt.x, pt.y);
-        }
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = this.radius;
+        ctx.strokeStyle = this.color; ctx.lineWidth = this.radius;
         ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        for (let i = 0; i < this.trail.length; i++) ctx.lineTo(this.trail[i].x, this.trail[i].y);
         ctx.stroke();
 
         ctx.globalAlpha = 1.0;
         ctx.fillStyle = this.color;
-        ctx.beginPath();
-        let angle = Math.atan2(this.vy, this.vx);
         ctx.translate(this.x, this.y);
-        ctx.rotate(angle);
-        ctx.moveTo(8, 0); ctx.lineTo(-6, -4); ctx.lineTo(-6, 4); ctx.closePath();
-        ctx.fill();
+        ctx.rotate(Math.atan2(this.vy, this.vx));
+        ctx.beginPath(); ctx.moveTo(8, 0); ctx.lineTo(-6, -4); ctx.lineTo(-6, 4); ctx.closePath(); ctx.fill();
         ctx.restore();
       }
     }
 
-    /* CHARACTER ENTITY */
+    /* CHARACTER ENTITY CLASS */
     class Entity {
-      constructor(x, y, isCPU = false, rankElo = 1000) {
+      constructor(x, y, isCPU = false, rankPts = 900) {
         this.x = x; this.y = y;
         this.radius = 20;
         this.isCPU = isCPU;
-        this.rankElo = rankElo;
+        this.rankPts = rankPts;
         this.isAlive = true;
         this.angle = 0;
-        this.activeWeaponSlot = 'melee'; // 'melee' or 'bow'
+        this.activeWeaponSlot = 'melee';
         this.attackCooldown = 0;
-        this.swingAnim = 0; // 0 to 1 for melee swing animation
+        this.swingAnim = 0;
         this.dashAnim = 0;
         this.historyTrail = [];
 
-        // Dynamic CPU Behavior & Gear
         this.cpuState = 'patrol';
-        this.cpuTarget = null;
         this.cpuStrafingDir = Math.random() < 0.5 ? 1 : -1;
         this.cpuStateTimer = 0;
         this.cpuDodgeTimer = 0;
@@ -938,6 +1029,9 @@
           this.name = playerSave.username || 'Player';
           this.faction = playerSave.faction || 'Steelheim';
           this.skin = playerSave.equipped.skin;
+          this.equippedMelee = playerSave.equipped.melee;
+          this.equippedBow = playerSave.equipped.bow;
+
           let m = MELEE_WEAPONS.find(w => w.id === playerSave.equipped.melee) || MELEE_WEAPONS[0];
           let b = BOW_WEAPONS.find(w => w.id === playerSave.equipped.bow) || BOW_WEAPONS[0];
           let a = ARMORS.find(ar => ar.id === playerSave.equipped.armor) || ARMORS[0];
@@ -948,51 +1042,40 @@
           this.bowDmg = Math.round(b.baseDmg * RARITIES[b.rarity].statMult) + (playerSave.upgrades.bowLvl * 4);
           this.bowSpeed = b.speed;
           this.speed = 3.8;
-          this.color = '#3b82f6';
         } else {
-          // CPU Level/Gear scaling according to ELO rank
-          let gearTierIndex = 0;
-          if (this.rankElo >= 2000) gearTierIndex = 5; // Mythic Tier
-          else if (this.rankElo >= 1700) gearTierIndex = 4; // Legendary
-          else if (this.rankElo >= 1400) gearTierIndex = 3; // Epic
-          else if (this.rankElo >= 1200) gearTierIndex = 2; // Rare
-          else if (this.rankElo >= 1050) gearTierIndex = 1; // Uncommon
-          else gearTierIndex = 0; // Common
+          // CPU scaling based on Rank Division
+          let rankIdx = getRankInfo(this.rankPts).index; // 0 to 20
+          let gearTierIndex = Math.min(5, Math.floor(rankIdx / 3.5));
 
-          // Add minor randomized variation
-          let mIdx = Math.min(MELEE_WEAPONS.length - 1, Math.max(0, gearTierIndex + Math.floor(Math.random() * 2 - 0.5)));
-          let bIdx = Math.min(BOW_WEAPONS.length - 1, Math.max(0, gearTierIndex + Math.floor(Math.random() * 2 - 0.5)));
-          let aIdx = Math.min(ARMORS.length - 1, Math.max(0, gearTierIndex + Math.floor(Math.random() * 2 - 0.5)));
+          let m = MELEE_WEAPONS[gearTierIndex];
+          let b = BOW_WEAPONS[gearTierIndex];
+          let a = ARMORS[gearTierIndex];
 
-          let m = MELEE_WEAPONS[mIdx];
-          let b = BOW_WEAPONS[bIdx];
-          let a = ARMORS[aIdx];
+          this.equippedMelee = m.id;
+          this.equippedBow = b.id;
 
-          const cpuNames = ['Karr', 'Vorn', 'Guts', 'Elden', 'Skoll', 'Brutus', 'Ragnar', 'Aethel', 'Thorin', 'Valkyr'];
-          const cpuFactions = ['Steelheim', 'Arcadia', 'Smithsten'];
-          
-          this.name = cpuNames[Math.floor(Math.random() * cpuNames.length)] + '_' + Math.floor(Math.random() * 90 + 10);
-          this.faction = cpuFactions[Math.floor(Math.random() * cpuFactions.length)];
+          let botNames = TOP_SAPPHIRE_BOTS.concat(['Crusader_Vorn', 'Valiant_Karr', 'Shield_Elden', 'Slayer_Skoll', 'Warlord_Titus']);
+          this.name = botNames[Math.floor(Math.random() * botNames.length)];
+          this.faction = ['Steelheim', 'Arcadia', 'Smithsten'][Math.floor(Math.random() * 3)];
           this.skin = SKINS[Math.min(SKINS.length - 1, gearTierIndex)].id;
 
-          this.maxHp = 90 + a.hpBonus;
+          // Enemy Stats scale with Rank
+          this.maxHp = 80 + a.hpBonus + (rankIdx * 10);
           this.hp = this.maxHp;
-          this.meleeDmg = Math.round(m.baseDmg * RARITIES[m.rarity].statMult);
-          this.bowDmg = Math.round(b.baseDmg * RARITIES[b.rarity].statMult);
+          this.meleeDmg = Math.round(m.baseDmg * RARITIES[m.rarity].statMult) + Math.floor(rankIdx * 1.5);
+          this.bowDmg = Math.round(b.baseDmg * RARITIES[b.rarity].statMult) + Math.floor(rankIdx * 1.2);
           this.bowSpeed = b.speed;
-          this.speed = 3.0 + (gearTierIndex * 0.15) + (Math.random() * 0.4);
-          this.color = '#ef4444';
+          this.speed = 2.8 + (rankIdx * 0.08);
         }
       }
 
       update(game) {
-        if (!this.isAlive) return;
+        if (!this.isAlive || game.countdown > 0) return;
 
         if (this.attackCooldown > 0) this.attackCooldown--;
         if (this.swingAnim > 0) this.swingAnim -= 0.1;
         if (this.dashAnim > 0) this.dashAnim -= 0.05;
 
-        // Trail positions for motion blur animation
         if (Math.hypot(this.vx || 0, this.vy || 0) > 0.5) {
           this.historyTrail.push({ x: this.x, y: this.y, angle: this.angle });
           if (this.historyTrail.length > 5) this.historyTrail.shift();
@@ -1000,13 +1083,9 @@
           if (this.historyTrail.length > 0) this.historyTrail.shift();
         }
 
-        if (!this.isCPU) {
-          this.handlePlayerInput(game);
-        } else {
-          this.handleCPUBehavior(game);
-        }
+        if (!this.isCPU) this.handlePlayerInput(game);
+        else this.handleCPUBehavior(game);
 
-        // Apply obstacle collisions & map boundary bounds
         this.keepInMapBounds(game);
         this.handleObstacleCollisions(game);
       }
@@ -1019,27 +1098,15 @@
         if (game.keys['d'] || game.keys['ArrowRight']) dx += 1;
 
         if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
+        this.vx = dx * this.speed; this.vy = dy * this.speed;
+        this.x += this.vx; this.y += this.vy;
 
-        this.vx = dx * this.speed;
-        this.vy = dy * this.speed;
-
-        this.x += this.vx;
-        this.y += this.vy;
-
-        // Dust particles on move
-        if ((dx !== 0 || dy !== 0) && Math.random() < 0.2) {
-          game.particles.push(new Particle(this.x, this.y + 10, (Math.random() - 0.5) * 2, Math.random() * 1, 'rgba(200,200,200,0.3)', 15, 3, 'dust'));
-        }
-
-        // Rotate towards mouse position
         this.angle = Math.atan2(game.mouse.y - this.y, game.mouse.x - this.x);
       }
 
       handleCPUBehavior(game) {
-        this.cpuStateTimer--;
-        this.cpuDodgeTimer--;
+        this.cpuStateTimer--; this.cpuDodgeTimer--;
 
-        // Find nearest living opponent
         let targets = game.entities.filter(e => e !== this && e.isAlive);
         if (targets.length === 0) return;
 
@@ -1047,65 +1114,41 @@
         let closest = targets[0];
         let dist = Math.hypot(closest.x - this.x, closest.y - this.y);
 
-        // State Machine Switch
         if (this.cpuStateTimer <= 0) {
-          this.cpuStateTimer = 40 + Math.floor(Math.random() * 60);
-          if (dist < 120) {
-            this.cpuState = Math.random() < 0.7 ? 'melee_attack' : 'strafe';
-          } else if (dist < 350) {
-            this.cpuState = Math.random() < 0.5 ? 'bow_attack' : 'strafe';
-          } else {
-            this.cpuState = 'chase';
-          }
+          this.cpuStateTimer = 30 + Math.floor(Math.random() * 40);
+          this.cpuState = dist < 120 ? 'melee_attack' : dist < 320 ? 'bow_attack' : 'chase';
           this.cpuStrafingDir = Math.random() < 0.5 ? 1 : -1;
         }
 
-        // Switch weapons dynamically
-        if (dist < 110 && this.activeWeaponSlot !== 'melee') {
-          this.activeWeaponSlot = 'melee';
-        } else if (dist > 180 && this.activeWeaponSlot !== 'bow') {
-          this.activeWeaponSlot = 'bow';
-        }
+        if (dist < 100) this.activeWeaponSlot = 'melee';
+        else if (dist > 160) this.activeWeaponSlot = 'bow';
 
-        let moveX = 0, moveY = 0;
         let targetAngle = Math.atan2(closest.y - this.y, closest.x - this.x);
         this.angle = targetAngle;
 
-        // React to incoming projectiles (Dodge AI)
-        let incomingArrow = game.projectiles.find(p => p.owner !== this && Math.hypot(p.x - this.x, p.y - this.y) < 130);
+        let moveX = 0, moveY = 0;
+        let incomingArrow = game.projectiles.find(p => p.owner !== this && Math.hypot(p.x - this.x, p.y - this.y) < 120);
+
         if (incomingArrow && this.cpuDodgeTimer <= 0) {
-          this.cpuDodgeTimer = 30;
+          this.cpuDodgeTimer = 25;
           let perpAngle = Math.atan2(incomingArrow.vy, incomingArrow.vx) + Math.PI / 2;
-          moveX = Math.cos(perpAngle) * this.speed * 1.5;
-          moveY = Math.sin(perpAngle) * this.speed * 1.5;
+          moveX = Math.cos(perpAngle) * this.speed * 1.4;
+          moveY = Math.sin(perpAngle) * this.speed * 1.4;
           this.dashAnim = 1.0;
         } else if (this.cpuState === 'chase') {
           moveX = Math.cos(targetAngle) * this.speed;
           moveY = Math.sin(targetAngle) * this.speed;
-        } else if (this.cpuState === 'strafe') {
-          let strafeAngle = targetAngle + (Math.PI / 2) * this.cpuStrafingDir;
-          moveX = Math.cos(strafeAngle) * this.speed;
-          moveY = Math.sin(strafeAngle) * this.speed;
         } else if (this.cpuState === 'melee_attack') {
           moveX = Math.cos(targetAngle) * this.speed * 1.1;
           moveY = Math.sin(targetAngle) * this.speed * 1.1;
-          if (dist < 50) this.attack(game);
+          if (dist < 45) this.attack(game);
         } else if (this.cpuState === 'bow_attack') {
-          // Keep ranged distance
-          if (dist < 160) {
-            moveX = -Math.cos(targetAngle) * this.speed;
-            moveY = -Math.sin(targetAngle) * this.speed;
-          }
+          if (dist < 150) { moveX = -Math.cos(targetAngle) * this.speed; moveY = -Math.sin(targetAngle) * this.speed; }
           this.attack(game);
         }
 
         this.vx = moveX; this.vy = moveY;
         this.x += moveX; this.y += moveY;
-
-        // Dust particles
-        if (Math.hypot(moveX, moveY) > 0.5 && Math.random() < 0.2) {
-          game.particles.push(new Particle(this.x, this.y + 10, (Math.random() - 0.5) * 2, Math.random() * 1, 'rgba(200,200,200,0.3)', 15, 3, 'dust'));
-        }
       }
 
       switchWeapon() {
@@ -1113,72 +1156,50 @@
         let slotM = document.getElementById('hud-slot-melee');
         let slotB = document.getElementById('hud-slot-bow');
         if (slotM && slotB) {
-          if (this.activeWeaponSlot === 'melee') {
-            slotM.classList.add('active'); slotB.classList.remove('active');
-          } else {
-            slotB.classList.add('active'); slotM.classList.remove('active');
-          }
+          if (this.activeWeaponSlot === 'melee') { slotM.classList.add('active'); slotB.classList.remove('active'); }
+          else { slotB.classList.add('active'); slotM.classList.remove('active'); }
         }
       }
 
       attack(game) {
-        if (this.attackCooldown > 0) return;
+        if (this.attackCooldown > 0 || game.countdown > 0) return;
 
         if (this.activeWeaponSlot === 'melee') {
-          this.attackCooldown = 25;
-          this.swingAnim = 1.0;
-
-          // Check hit cone in front of unit
+          this.attackCooldown = 22; this.swingAnim = 1.0;
           for (let entity of game.entities) {
             if (entity !== this && entity.isAlive) {
               let dist = Math.hypot(entity.x - this.x, entity.y - this.y);
               if (dist < this.radius + 45) {
                 let angleToTarget = Math.atan2(entity.y - this.y, entity.x - this.x);
                 let diff = Math.abs(this.angle - angleToTarget);
-                if (diff < Math.PI / 3 || diff > Math.PI * 1.6) {
-                  entity.takeDamage(this.meleeDmg, this, game);
-                  // Hit spark particles
-                  for (let i = 0; i < 8; i++) {
-                    game.particles.push(new Particle(entity.x, entity.y, (Math.random() - 0.5) * 6, (Math.random() - 0.5) * 6, '#ffd700', 15, 4, 'spark'));
-                  }
-                }
+                if (diff < Math.PI / 3 || diff > Math.PI * 1.6) entity.takeDamage(this.meleeDmg, this, game);
               }
             }
           }
         } else {
-          // Bow projectile
-          this.attackCooldown = 35;
-          let speed = this.bowSpeed;
-          let vx = Math.cos(this.angle) * speed;
-          let vy = Math.sin(this.angle) * speed;
-          let pColor = this.faction === 'Arcadia' ? '#ffd700' : '#38bdf8';
-          game.projectiles.push(new Projectile(this.x + Math.cos(this.angle) * 20, this.y + Math.sin(this.angle) * 20, vx, vy, this.bowDmg, this, pColor));
+          this.attackCooldown = 32;
+          let vx = Math.cos(this.angle) * this.bowSpeed;
+          let vy = Math.sin(this.angle) * this.bowSpeed;
+          game.projectiles.push(new Projectile(this.x + Math.cos(this.angle) * 20, this.y + Math.sin(this.angle) * 20, vx, vy, this.bowDmg, this));
         }
       }
 
       takeDamage(amount, attacker, game) {
         this.hp -= amount;
-        
-        // Spawn damage numbers/blood particles
-        for (let i = 0; i < 6; i++) {
-          game.particles.push(new Particle(this.x, this.y, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, '#dc2626', 20, 3, 'slash'));
+        for (let i = 0; i < 5; i++) {
+          game.particles.push(new Particle(this.x, this.y, (Math.random() - 0.5) * 5, (Math.random() - 0.5) * 5, '#dc2626', 15, 3, 'slash'));
         }
 
         if (this.hp <= 0) {
-          this.hp = 0;
-          this.isAlive = false;
-
-          // Session point rewards if killed by player
+          this.hp = 0; this.isAlive = false;
           if (attacker && !attacker.isCPU) {
-            game.sessionGold += 50;
+            game.sessionGold += 60;
             if (attacker.faction === 'Steelheim') game.sessionMeleePts += 40;
             else if (attacker.faction === 'Arcadia') game.sessionBowPts += 40;
             else game.sessionArmorPts += 40;
           }
-
           game.checkBattleStatus();
         }
-
         if (!this.isCPU) game.updateHUD();
       }
 
@@ -1191,16 +1212,12 @@
         for (let obs of game.obstacles) {
           let nearestX = Math.max(obs.x, Math.min(this.x, obs.x + obs.w));
           let nearestY = Math.max(obs.y, Math.min(this.y, obs.y + obs.h));
-          let distX = this.x - nearestX;
-          let distY = this.y - nearestY;
+          let distX = this.x - nearestX; let distY = this.y - nearestY;
           let distance = Math.hypot(distX, distY);
-
           if (distance < this.radius) {
             let overlap = this.radius - distance;
-            let normX = distX / (distance || 1);
-            let normY = distY / (distance || 1);
-            this.x += normX * overlap;
-            this.y += normY * overlap;
+            this.x += (distX / (distance || 1)) * overlap;
+            this.y += (distY / (distance || 1)) * overlap;
           }
         }
       }
@@ -1208,91 +1225,39 @@
       draw(ctx) {
         if (!this.isAlive) return;
 
-        // Draw Motion Trails
-        for (let i = 0; i < this.historyTrail.length; i++) {
-          let pt = this.historyTrail[i];
-          ctx.save();
-          ctx.translate(pt.x, pt.y);
-          ctx.globalAlpha = (i + 1) / (this.historyTrail.length * 4);
-          ctx.fillStyle = this.color;
-          ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
-          ctx.restore();
-        }
-
         ctx.save();
         ctx.translate(this.x, this.y);
-
-        // Dash shockwave ring animation
-        if (this.dashAnim > 0) {
-          ctx.strokeStyle = 'rgba(255, 255, 255, ' + this.dashAnim + ')';
-          ctx.lineWidth = 3;
-          ctx.beginPath(); ctx.arc(0, 0, this.radius + (1.0 - this.dashAnim) * 20, 0, Math.PI * 2); ctx.stroke();
-        }
-
-        // Draw character base circle
         ctx.rotate(this.angle);
 
-        // Body Shadow
-        ctx.fillStyle = 'rgba(0,0,0,0.3)';
-        ctx.beginPath(); ctx.arc(2, 4, this.radius, 0, Math.PI * 2); ctx.fill();
-
-        // Main Body Fill
+        // Body
         ctx.fillStyle = this.isCPU ? '#e11d48' : '#2563eb';
         ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = '#000'; ctx.lineWidth = 2.5; ctx.stroke();
 
-        // Custom Skin Render Overlay
         drawSkinDetails(ctx, this.skin, this.radius);
 
-        // Draw Weapon Graphics & Attack Animations
+        // Detailed Weapon Graphics Rendering
         if (this.activeWeaponSlot === 'melee') {
           ctx.save();
           let swingOffset = this.swingAnim > 0 ? (1.0 - this.swingAnim) * Math.PI * 0.8 - Math.PI * 0.4 : 0;
           ctx.rotate(swingOffset);
-
-          // Weapon blade arc path animation
-          if (this.swingAnim > 0) {
-            ctx.strokeStyle = 'rgba(255, 215, 0, ' + this.swingAnim + ')';
-            ctx.lineWidth = 6;
-            ctx.beginPath(); ctx.arc(0, 0, 42, -Math.PI * 0.3, Math.PI * 0.3); ctx.stroke();
-          }
-
-          // Sword rendering
-          ctx.fillStyle = '#94a3b8';
-          ctx.fillRect(15, -3, 24, 6);
-          ctx.fillStyle = '#d4af37';
-          ctx.fillRect(12, -7, 4, 14);
+          ctx.translate(15, 0);
+          drawDetailedWeaponArt(ctx, this.equippedMelee);
           ctx.restore();
         } else {
-          // Bow rendering
-          ctx.strokeStyle = '#854d0e';
-          ctx.lineWidth = 4;
-          ctx.beginPath();
-          ctx.arc(12, 0, 18, -Math.PI * 0.4, Math.PI * 0.4);
-          ctx.stroke();
-
-          // Bowstring animation
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(12 + Math.cos(-Math.PI * 0.4) * 18, Math.sin(-Math.PI * 0.4) * 18);
-          ctx.lineTo(this.attackCooldown > 20 ? 4 : 12, 0);
-          ctx.lineTo(12 + Math.cos(Math.PI * 0.4) * 18, Math.sin(Math.PI * 0.4) * 18);
-          ctx.stroke();
+          ctx.save();
+          ctx.translate(15, 0);
+          drawDetailedWeaponArt(ctx, this.equippedBow);
+          ctx.restore();
         }
 
         ctx.restore();
 
-        // Draw Health Bar above character
+        // HP Bar & Name
         ctx.save();
         ctx.translate(this.x, this.y - this.radius - 12);
-        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(-20, 0, 40, 6);
-        let hpRatio = this.hp / this.maxHp;
-        ctx.fillStyle = hpRatio > 0.5 ? '#22c55e' : hpRatio > 0.25 ? '#eab308' : '#ef4444';
-        ctx.fillRect(-20, 0, 40 * hpRatio, 6);
-        ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.strokeRect(-20, 0, 40, 6);
-
-        // Entity Name Tag
+        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(-20, 0, 40, 5);
+        ctx.fillStyle = '#22c55e'; ctx.fillRect(-20, 0, 40 * (this.hp / this.maxHp), 5);
         ctx.fillStyle = '#fff'; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
         ctx.fillText(this.name, 0, -4);
         ctx.restore();
@@ -1302,57 +1267,29 @@
     /* ZOMBIE ENEMY ENTITY */
     class ZombieEntity extends Entity {
       constructor(x, y, wave = 1) {
-        super(x, y, true, 800);
+        super(x, y, true, 0);
         this.name = 'Zombie';
-        this.maxHp = 45 + (wave * 15);
+        this.maxHp = 40 + (wave * 15);
         this.hp = this.maxHp;
-        this.meleeDmg = 10 + (wave * 3);
-        this.speed = 1.8 + Math.min(2.0, wave * 0.15);
-        this.color = '#15803d';
+        this.meleeDmg = 8 + (wave * 3);
+        this.speed = 1.8 + Math.min(2.0, wave * 0.12);
+        this.equippedMelee = 'm_iron_sword';
+        this.equippedBow = 'b_short_bow';
       }
 
       handleCPUBehavior(game) {
         if (!game.player || !game.player.isAlive) return;
         let targetAngle = Math.atan2(game.player.y - this.y, game.player.x - this.x);
         this.angle = targetAngle;
+        this.x += Math.cos(targetAngle) * this.speed;
+        this.y += Math.sin(targetAngle) * this.speed;
 
-        let moveX = Math.cos(targetAngle) * this.speed;
-        let moveY = Math.sin(targetAngle) * this.speed;
-        this.x += moveX; this.y += moveY;
-
-        let dist = Math.hypot(game.player.x - this.x, game.player.y - this.y);
-        if (dist < this.radius + game.player.radius + 5) {
+        if (Math.hypot(game.player.x - this.x, game.player.y - this.y) < this.radius + game.player.radius + 4) {
           if (this.attackCooldown <= 0) {
             game.player.takeDamage(this.meleeDmg, this, game);
             this.attackCooldown = 40;
-            this.swingAnim = 1.0;
           }
         }
-      }
-
-      draw(ctx) {
-        if (!this.isAlive) return;
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.angle);
-
-        // Zombie Body
-        ctx.fillStyle = '#166534'; ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#052e16'; ctx.lineWidth = 2; ctx.stroke();
-
-        // Arms reaching out animation
-        ctx.fillStyle = '#22c55e';
-        ctx.fillRect(10, -10, 15, 5);
-        ctx.fillRect(10, 5, 15, 5);
-
-        ctx.restore();
-
-        // HP Bar
-        ctx.save();
-        ctx.translate(this.x, this.y - this.radius - 8);
-        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(-15, 0, 30, 4);
-        ctx.fillStyle = '#22c55e'; ctx.fillRect(-15, 0, 30 * (this.hp / this.maxHp), 4);
-        ctx.restore();
       }
     }
 
@@ -1362,6 +1299,7 @@
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.mode = 'casual'; this.running = false;
+        this.countdown = 3;
         this.keys = {}; this.mouse = { x: 0, y: 0 };
         this.entities = []; this.obstacles = []; this.projectiles = []; this.particles = [];
         this.player = null; this.map = MAP_ENVIRONMENTS[0];
@@ -1402,33 +1340,53 @@
         this.sessionGold = 0; this.sessionMeleePts = 0; this.sessionBowPts = 0; this.sessionArmorPts = 0;
         this.wave = 1;
 
-        // Generate map obstacles
         this.generateObstacles();
 
-        // Spawn player
         this.player = new Entity(100, this.canvas.height / 2, false);
         this.entities.push(this.player);
 
         if (mode === 'zombies') {
           this.spawnZombieWave();
         } else {
-          // Casual or Ranked: Spawn 3 CPU Opponents with scaled ELO ratings
+          // Spawn CPU Champions scaled to Rank in Ranked mode
           for (let i = 0; i < 3; i++) {
-            let cpuElo = mode === 'ranked' ? playerSave.elo + (Math.random() * 200 - 100) : 1000 + Math.random() * 400;
+            let cpuRankPts = mode === 'ranked' ? playerSave.rankPts : 900;
             let spawnX = this.canvas.width - 150 + (Math.random() * 60 - 30);
             let spawnY = 150 + i * (this.canvas.height / 3);
-            this.entities.push(new Entity(spawnX, spawnY, true, Math.max(800, cpuElo)));
+            this.entities.push(new Entity(spawnX, spawnY, true, cpuRankPts));
           }
         }
 
         this.updateHUD();
+        this.startPreMatchCountdown();
+      }
+
+      startPreMatchCountdown() {
+        this.countdown = 3;
+        const overlay = document.getElementById('countdown-overlay');
+        const text = document.getElementById('countdown-text');
+        overlay.classList.remove('hidden');
+        text.innerText = '3';
+
+        let interval = setInterval(() => {
+          this.countdown--;
+          if (this.countdown > 0) {
+            text.innerText = this.countdown;
+          } else if (this.countdown === 0) {
+            text.innerText = 'CRUSADE!';
+          } else {
+            clearInterval(interval);
+            overlay.classList.add('hidden');
+          }
+        }, 800);
+
         this.running = true;
         requestAnimationFrame(() => this.loop());
       }
 
       generateObstacles() {
         this.obstacles = [];
-        let count = 5 + Math.floor(Math.random() * 4);
+        let count = 5 + Math.floor(Math.random() * 3);
         for (let i = 0; i < count; i++) {
           this.obstacles.push({
             x: 200 + Math.random() * (this.canvas.width - 400),
@@ -1457,8 +1415,7 @@
         if (this.mode === 'zombies') {
           let zombiesLeft = this.entities.filter(e => e instanceof ZombieEntity && e.isAlive);
           if (zombiesLeft.length === 0) {
-            this.wave++;
-            this.sessionGold += 100;
+            this.wave++; this.sessionGold += 100;
             this.spawnZombieWave();
           }
         } else {
@@ -1477,19 +1434,19 @@
         let title = document.getElementById('post-title');
         let summary = document.getElementById('post-summary');
 
-        let eloChange = 0;
+        let rankPtsChange = 0;
         if (this.mode === 'ranked') {
-          eloChange = victory ? 32 : -20;
-          playerSave.elo = Math.max(800, playerSave.elo + eloChange);
+          rankPtsChange = victory ? 45 : -30;
+          playerSave.rankPts = Math.max(0, playerSave.rankPts + rankPtsChange); // Demotions down to Plastic 3
         }
 
         if (victory) {
           title.innerText = "VICTORY ACHIEVED"; title.style.color = "#22c55e";
-          summary.innerText = "You dominated the arena and emerged victorious!";
+          summary.innerText = "You crushed your opponents and climbed the Crusade ranks!";
           this.sessionGold += 150;
         } else {
           title.innerText = "DEFEATED IN BATTLE"; title.style.color = "#ef4444";
-          summary.innerText = "You fell in combat. Practice and forge stronger gear!";
+          summary.innerText = "You fell in combat. Train harder and reclaim your glory!";
         }
 
         playerSave.gold += this.sessionGold;
@@ -1500,7 +1457,7 @@
 
         document.getElementById('post-gold').innerText = '+' + this.sessionGold;
         document.getElementById('post-pts').innerText = '+' + (this.sessionMeleePts + this.sessionBowPts + this.sessionArmorPts);
-        document.getElementById('post-elo').innerText = (eloChange >= 0 ? '+' : '') + eloChange;
+        document.getElementById('post-elo').innerText = (rankPtsChange >= 0 ? '+' : '') + rankPtsChange + ' Pts';
       }
 
       returnToHub() {
@@ -1519,74 +1476,48 @@
 
       loop() {
         if (!this.running) return;
-
         this.update();
         this.render();
-
         requestAnimationFrame(() => this.loop());
       }
 
       update() {
-        // Update entities
         this.entities.forEach(e => e.update(this));
-
-        // Update projectiles
         for (let i = this.projectiles.length - 1; i >= 0; i--) {
-          let p = this.projectiles[i];
-          p.update(this);
+          let p = this.projectiles[i]; p.update(this);
           if (!p.active) this.projectiles.splice(i, 1);
         }
-
-        // Update particles
         for (let i = this.particles.length - 1; i >= 0; i--) {
-          let pt = this.particles[i];
-          pt.update();
+          let pt = this.particles[i]; pt.update();
           if (pt.life <= 0) this.particles.splice(i, 1);
         }
       }
 
       render() {
-        // Clear background with map environment color
         this.ctx.fillStyle = this.map.bg;
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Draw Map Grid Details
-        this.ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-        this.ctx.lineWidth = 1;
-        for (let x = 0; x < this.canvas.width; x += 40) {
-          this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, this.canvas.height); this.ctx.stroke();
-        }
-        for (let y = 0; y < this.canvas.height; y += 40) {
-          this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(this.canvas.width, y); this.ctx.stroke();
-        }
+        // Map Grid
+        this.ctx.strokeStyle = 'rgba(255,255,255,0.03)'; this.ctx.lineWidth = 1;
+        for (let x = 0; x < this.canvas.width; x += 40) { this.ctx.beginPath(); this.ctx.moveTo(x, 0); this.ctx.lineTo(x, this.canvas.height); this.ctx.stroke(); }
+        for (let y = 0; y < this.canvas.height; y += 40) { this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(this.canvas.width, y); this.ctx.stroke(); }
 
-        // Draw Map Obstacles
+        // Obstacles
         for (let obs of this.obstacles) {
-          this.ctx.fillStyle = this.map.obstacleColor;
-          this.ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-          this.ctx.strokeStyle = this.map.border;
-          this.ctx.lineWidth = 3;
-          this.ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+          this.ctx.fillStyle = this.map.obstacleColor; this.ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+          this.ctx.strokeStyle = this.map.border; this.ctx.lineWidth = 3; this.ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
         }
 
-        // Draw Projectiles
         this.projectiles.forEach(p => p.draw(this.ctx));
-
-        // Draw Entities
         this.entities.forEach(e => e.draw(this.ctx));
-
-        // Draw Particles
         this.particles.forEach(p => p.draw(this.ctx));
       }
     }
 
-    // Global Game Instance
     let game = new UltimateCrusadeGame();
 
-    // DOM Setup Events
     window.addEventListener('load', () => {
       renderFactionIcons();
-
       let hasSave = loadGameData();
 
       document.getElementById('btn-start-legacy').addEventListener('click', () => {
@@ -1599,7 +1530,6 @@
         }
       });
 
-      // Faction Card Selectors
       let selectedFaction = 'Steelheim';
       const factionCards = document.querySelectorAll('.faction-card');
       factionCards.forEach(card => {
@@ -1616,6 +1546,7 @@
 
         playerSave.username = nameInput;
         playerSave.faction = selectedFaction;
+        playerSave.rankPts = 900; // Starts at Bronze 3
         saveGameData();
 
         document.getElementById('screen-setup').classList.add('hidden');
@@ -1623,7 +1554,6 @@
         updateHubUI();
       });
 
-      // Tab Navigation
       const tabBtns = document.querySelectorAll('.tab-btn');
       const tabContents = document.querySelectorAll('.tab-content');
       tabBtns.forEach(btn => {
