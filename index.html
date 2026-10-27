@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -367,6 +368,29 @@
       box-shadow: 0 0 10px var(--primary);
     }
 
+    /* Spawn Picker Mini-Map Overlay */
+    #spawn-picker-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(10, 12, 16, 0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 25;
+    }
+
+    #minimap-canvas {
+      border: 3px solid var(--primary);
+      border-radius: 8px;
+      cursor: crosshair;
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
+      margin: 15px 0;
+    }
+
     /* Pre-Match Countdown Overlay */
     #countdown-overlay {
       position: absolute;
@@ -555,6 +579,14 @@
   <div id="game-container" class="hidden">
     <canvas id="gameCanvas"></canvas>
     
+    <!-- Spawn Picker Mini-Map Overlay -->
+    <div id="spawn-picker-overlay" class="hidden">
+      <h2 style="color: var(--primary); text-transform: uppercase;">Select Spawn Location</h2>
+      <p style="color: #cbd5e1; font-size:0.95rem;">Click anywhere on the mini-map to deploy your Champion!</p>
+      <canvas id="minimap-canvas" width="400" height="250"></canvas>
+      <button class="btn" id="btn-confirm-spawn" disabled style="opacity:0.5;">Deploy Champion</button>
+    </div>
+
     <!-- Countdown Overlay -->
     <div id="countdown-overlay" class="hidden">
       <div id="countdown-text">3</div>
@@ -1168,7 +1200,6 @@
         let targets = game.entities.filter(e => e !== this && e.isAlive);
         if (targets.length === 0) return;
 
-        // Find targets based on playstyle (Tacticians focus lowest HP, Berserkers closest)
         if (this.playstyle === 'tactician') {
           targets.sort((a, b) => a.hp - b.hp);
         } else {
@@ -1177,7 +1208,6 @@
         let closest = targets[0];
         let dist = Math.hypot(closest.x - this.x, closest.y - this.y);
 
-        // State Machine timer logic based on Playstyle
         if (this.cpuStateTimer <= 0) {
           this.cpuStateTimer = 25 + Math.floor(Math.random() * 35);
           this.cpuStrafingDir = Math.random() < 0.5 ? 1 : -1;
@@ -1193,7 +1223,6 @@
           }
         }
 
-        // Dynamic Weapon Selection per Playstyle & Proximity
         if (this.playstyle === 'berserker') {
           if (this.activeWeaponSlot !== 'melee') this.activeWeaponSlot = 'melee';
         } else if (this.playstyle === 'marksman') {
@@ -1209,7 +1238,6 @@
 
         let moveX = 0, moveY = 0;
 
-        // Reactive Dodging AI against incoming arrows
         let incomingArrow = game.projectiles.find(p => p.owner !== this && Math.hypot(p.x - this.x, p.y - this.y) < 130);
         if (incomingArrow && this.cpuDodgeTimer <= 0) {
           this.cpuDodgeTimer = 20;
@@ -1316,7 +1344,6 @@
         ctx.save();
         ctx.translate(this.x, this.y);
 
-        // Walking sway animation
         let bodyBob = Math.sin(this.walkCycle) * 2;
         ctx.translate(0, bodyBob);
 
@@ -1329,7 +1356,6 @@
 
         drawSkinDetails(ctx, this.skin, this.radius);
 
-        // Detailed Weapon Graphics Rendering
         if (this.activeWeaponSlot === 'melee') {
           ctx.save();
           let swingOffset = this.swingAnim > 0 ? (1.0 - this.swingAnim) * Math.PI * 0.8 - Math.PI * 0.4 : 0;
@@ -1391,13 +1417,21 @@
       constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
+        this.minimapCanvas = document.getElementById('minimap-canvas');
+        this.minimapCtx = this.minimapCanvas.getContext('2d');
+
         this.mode = 'casual'; this.running = false;
         this.countdown = 3;
+        this.selectedSpawn = null;
+        this.cpuSpawns = [];
+
         this.keys = {}; this.mouse = { x: 0, y: 0 };
         this.entities = []; this.obstacles = []; this.projectiles = []; this.particles = [];
         this.player = null; this.map = MAP_ENVIRONMENTS[0];
         this.wave = 1; this.sessionGold = 0; this.sessionMeleePts = 0; this.sessionBowPts = 0; this.sessionArmorPts = 0;
+        
         this.initControls();
+        this.initSpawnPickerUI();
       }
 
       initControls() {
@@ -1412,6 +1446,41 @@
           this.mouse.y = e.clientY - rect.top;
         });
         window.addEventListener('mousedown', e => { if (this.running && this.player && e.button === 0) this.player.attack(this); });
+      }
+
+      initSpawnPickerUI() {
+        this.minimapCanvas.addEventListener('click', e => {
+          let rect = this.minimapCanvas.getBoundingClientRect();
+          let clickX = e.clientX - rect.left;
+          let clickY = e.clientY - rect.top;
+
+          // Scale click coordinates to main canvas dimensions
+          let scaleX = this.canvas.width / this.minimapCanvas.width;
+          let scaleY = this.canvas.height / this.minimapCanvas.height;
+
+          let targetX = clickX * scaleX;
+          let targetY = clickY * scaleY;
+
+          // Ensure player doesn't spawn directly inside obstacles
+          let insideObs = this.obstacles.some(obs => 
+            targetX > obs.x - 20 && targetX < obs.x + obs.w + 20 &&
+            targetY > obs.y - 20 && targetY < obs.y + obs.h + 20
+          );
+
+          if (!insideObs) {
+            this.selectedSpawn = { x: targetX, y: targetY };
+            document.getElementById('btn-confirm-spawn').disabled = false;
+            document.getElementById('btn-confirm-spawn').style.opacity = '1.0';
+            this.renderMinimap();
+          }
+        });
+
+        document.getElementById('btn-confirm-spawn').addEventListener('click', () => {
+          if (this.selectedSpawn) {
+            document.getElementById('spawn-picker-overlay').classList.add('hidden');
+            this.launchBattleWithSpawns();
+          }
+        });
       }
 
       resizeCanvas() {
@@ -1431,21 +1500,97 @@
 
         this.entities = []; this.projectiles = []; this.particles = [];
         this.sessionGold = 0; this.sessionMeleePts = 0; this.sessionBowPts = 0; this.sessionArmorPts = 0;
-        this.wave = 1;
+        this.wave = 1; this.selectedSpawn = null;
 
         this.generateObstacles();
+        this.generateRandomCPUSpawns();
 
-        this.player = new Entity(100, this.canvas.height / 2, false);
+        // Show Spawn Picker Mini-Map Overlay
+        document.getElementById('spawn-picker-overlay').classList.remove('hidden');
+        document.getElementById('btn-confirm-spawn').disabled = true;
+        document.getElementById('btn-confirm-spawn').style.opacity = '0.5';
+        this.renderMinimap();
+      }
+
+      generateRandomCPUSpawns() {
+        this.cpuSpawns = [];
+        let numCPUs = this.mode === 'zombies' ? 0 : 3;
+
+        for (let i = 0; i < numCPUs; i++) {
+          let valid = false;
+          let spawn = { x: 0, y: 0 };
+          while (!valid) {
+            spawn.x = 80 + Math.random() * (this.canvas.width - 160);
+            spawn.y = 80 + Math.random() * (this.canvas.height - 160);
+
+            // Check against obstacles
+            let inObs = this.obstacles.some(obs => 
+              spawn.x > obs.x - 30 && spawn.x < obs.x + obs.w + 30 &&
+              spawn.y > obs.y - 30 && spawn.y < obs.y + obs.h + 30
+            );
+
+            // Check distance between other spawns
+            let tooClose = this.cpuSpawns.some(s => Math.hypot(s.x - spawn.x, s.y - spawn.y) < 150);
+
+            if (!inObs && !tooClose) valid = true;
+          }
+          this.cpuSpawns.push(spawn);
+        }
+      }
+
+      renderMinimap() {
+        let mCtx = this.minimapCtx;
+        let mW = this.minimapCanvas.width;
+        let mH = this.minimapCanvas.height;
+
+        let scaleX = mW / this.canvas.width;
+        let scaleY = mH / this.canvas.height;
+
+        // Draw Map Background
+        mCtx.fillStyle = this.map.bg;
+        mCtx.fillRect(0, 0, mW, mH);
+
+        // Draw Obstacles
+        for (let obs of this.obstacles) {
+          mCtx.fillStyle = this.map.obstacleColor;
+          mCtx.fillRect(obs.x * scaleX, obs.y * scaleY, obs.w * scaleX, obs.h * scaleY);
+          mCtx.strokeStyle = this.map.border;
+          mCtx.strokeRect(obs.x * scaleX, obs.y * scaleY, obs.w * scaleX, obs.h * scaleY);
+        }
+
+        // Draw Randomized CPU Spawn Icons (Red Dots)
+        for (let s of this.cpuSpawns) {
+          mCtx.fillStyle = '#ef4444';
+          mCtx.beginPath();
+          mCtx.arc(s.x * scaleX, s.y * scaleY, 6, 0, Math.PI * 2);
+          mCtx.fill();
+        }
+
+        // Draw Player Picked Spawn (Blue Dot + Ring)
+        if (this.selectedSpawn) {
+          mCtx.fillStyle = '#2563eb';
+          mCtx.strokeStyle = '#38bdf8';
+          mCtx.lineWidth = 2;
+          mCtx.beginPath();
+          mCtx.arc(this.selectedSpawn.x * scaleX, this.selectedSpawn.y * scaleY, 8, 0, Math.PI * 2);
+          mCtx.fill();
+          mCtx.stroke();
+        }
+      }
+
+      launchBattleWithSpawns() {
+        // Spawn Player at chosen position
+        this.player = new Entity(this.selectedSpawn.x, this.selectedSpawn.y, false);
         this.entities.push(this.player);
 
-        if (mode === 'zombies') {
+        if (this.mode === 'zombies') {
           this.spawnZombieWave();
         } else {
-          for (let i = 0; i < 3; i++) {
-            let cpuRankPts = mode === 'ranked' ? playerSave.rankPts : 900;
-            let spawnX = this.canvas.width - 150 + (Math.random() * 60 - 30);
-            let spawnY = 150 + i * (this.canvas.height / 3);
-            this.entities.push(new Entity(spawnX, spawnY, true, cpuRankPts));
+          // Spawn CPUs at randomized pre-generated positions
+          for (let i = 0; i < this.cpuSpawns.length; i++) {
+            let cpuRankPts = this.mode === 'ranked' ? playerSave.rankPts : 900;
+            let spawn = this.cpuSpawns[i];
+            this.entities.push(new Entity(spawn.x, spawn.y, true, cpuRankPts));
           }
         }
 
@@ -1660,3 +1805,5 @@
   </script>
 </body>
 </html>
+
+
